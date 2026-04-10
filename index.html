@@ -163,6 +163,7 @@
     transform: translateX(-100%);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 24px;
   }
 
@@ -497,6 +498,7 @@
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    -webkit-overflow-scrolling: touch;
   }
 
   .admin-panel.open { transform: translateX(0); }
@@ -920,6 +922,52 @@
     text-align: center;
     margin-bottom: 8px;
     animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  /* ══════════════════════════════════════
+     MOBILE / RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (max-width: 600px) {
+
+    /* Header — tighter padding, hide stats */
+    .header { padding: 10px 14px; }
+    .stats  { display: none; }
+
+    /* Logo sub — hide on small screens */
+    .logo-sub { display: none; }
+
+    /* Search — full width minus header space */
+    .search-box { right: 10px; top: 52px; }
+    .search-box input { width: calc(100vw - 80px); font-size: 14px; }
+
+    /* Info panel — full screen width */
+    .panel { width: 100vw; padding: 20px 16px 32px; border-right: none; }
+
+    /* Panel close button — larger tap target */
+    .panel-close { width: 40px; height: 40px; font-size: 22px; }
+
+    /* Admin panel — full screen width */
+    .admin-panel { width: 100vw; border-left: none; }
+
+    /* Legend — shrink and push left of controls */
+    .legend {
+      right: 10px;
+      bottom: 10px;
+      max-width: calc(100vw - 110px);
+      gap: 6px;
+    }
+    .legend-item { font-size: 10px; padding: 3px 8px; gap: 5px; }
+    .legend-dot  { width: 6px; height: 6px; }
+
+    /* Controls — tighter corner */
+    .controls { left: 10px; bottom: 10px; gap: 5px; }
+    .ctrl-btn  { width: 38px; height: 38px; font-size: 17px; }
+
+    /* Drive folder iframe — shorter on mobile */
+    .drive-folder-embed { height: 220px; }
+
+    /* Admin modal — full width */
+    .admin-modal { width: calc(100vw - 32px); padding: 28px 20px 20px; }
   }
 </style>
 </head>
@@ -1642,7 +1690,7 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
-  logoVersion:       'v2.4',
+  logoVersion:       'v2.5',
   logoSub:           'work in progress',
 };
 
