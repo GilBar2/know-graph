@@ -736,6 +736,244 @@
 
   .admin-logout-btn:hover { background: rgba(255, 77, 106, 0.15); }
 
+  /* ══════════════════════════════════════
+     SITE GATE
+  ══════════════════════════════════════ */
+  .site-gate {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .site-gate.hidden { display: none; }
+
+  .site-gate-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 44px 36px 32px;
+    width: 360px;
+    text-align: center;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+  }
+
+  .site-gate-logo { font-size: 40px; margin-bottom: 16px; line-height: 1; }
+
+  .site-gate-title {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .site-gate-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 28px; }
+
+  .site-gate input[type="password"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 5px;
+    direction: ltr;
+    transition: border-color 0.2s;
+  }
+
+  .site-gate input[type="password"]:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--glow);
+  }
+
+  .site-gate input[type="password"]::placeholder {
+    letter-spacing: 2px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .site-gate-error {
+    font-size: 12px;
+    color: var(--accent-red);
+    margin-bottom: 10px;
+    min-height: 16px;
+  }
+
+  .site-gate-btn {
+    width: 100%;
+    background: var(--accent-blue);
+    border: none;
+    color: #fff;
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .site-gate-btn:hover  { opacity: 0.88; }
+  .site-gate-btn:active { transform: scale(0.98); }
+
+  /* ══════════════════════════════════════
+     LOGO VERSION + SUB
+  ══════════════════════════════════════ */
+  .logo-text-wrap { display: flex; flex-direction: column; gap: 3px; }
+
+  .logo-main-row { display: flex; align-items: center; gap: 8px; }
+
+  .logo-version {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(77,139,255,0.15);
+    color: var(--accent-blue);
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    font-family: 'Rubik', sans-serif;
+    flex-shrink: 0;
+  }
+
+  .logo-sub {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Rubik', sans-serif;
+  }
+
+  /* ══════════════════════════════════════
+     DRIVE CAROUSEL
+  ══════════════════════════════════════ */
+  .carousel-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .carousel-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .carousel-title-txt {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+  }
+
+  .carousel-counter { font-size: 11px; color: var(--text-dim); }
+
+  .carousel-item { display: none; }
+  .carousel-item.active { display: block; }
+
+  .carousel-item a { text-decoration: none; color: var(--text); }
+
+  .carousel-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .carousel-thumb:hover { border-color: rgba(255,255,255,0.15); }
+
+  .carousel-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .carousel-thumb.thumb-error { display: flex; align-items: center; justify-content: center; }
+  .carousel-thumb.thumb-error img { display: none; }
+  .carousel-thumb.thumb-error::after { content: '🖼'; font-size: 36px; }
+
+  .carousel-play-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    color: rgba(255,255,255,0.9);
+    background: rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+
+  .carousel-name {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: ltr;
+    text-align: left;
+  }
+
+  .carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .carousel-arrow {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .carousel-arrow:hover { background: rgba(255,255,255,0.1); }
+
+  .carousel-no-key {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .carousel-no-key-icon { font-size: 28px; margin-bottom: 8px; }
+
+  .carousel-loading {
+    text-align: center;
+    padding: 24px 0;
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
   .admin-save-btn {
     width: 100%;
     background: var(--accent-green);
@@ -770,7 +1008,13 @@
 <div class="header">
   <div class="logo">
     <div class="logo-dot"></div>
-    <span id="logoText">ניהול ארכיון — גרף ידע</span>
+    <div class="logo-text-wrap">
+      <div class="logo-main-row">
+        <span id="logoText">ניהול ארכיון — גרף ידע</span>
+        <span class="logo-version" id="logoVersion">v2.3</span>
+      </div>
+      <div class="logo-sub" id="logoSub">work in progress</div>
+    </div>
   </div>
   <div class="header-right">
     <div class="admin-mode-indicator" id="adminModeIndicator">
@@ -786,6 +1030,18 @@
 
 <div class="search-box">
   <input type="text" id="search" placeholder="חיפוש בגרף..." />
+</div>
+
+<!-- ── Site Gate ── -->
+<div class="site-gate" id="siteGate">
+  <div class="site-gate-box">
+    <div class="site-gate-logo">🔒</div>
+    <div class="site-gate-title">ניהול ארכיון — גרף ידע</div>
+    <div class="site-gate-sub">הזן סיסמה לגישה</div>
+    <input type="password" id="siteGateInput" placeholder="סיסמה" autocomplete="off" />
+    <div class="site-gate-error" id="siteGateError"></div>
+    <button class="site-gate-btn" id="siteGateBtn">כניסה</button>
+  </div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -854,6 +1110,14 @@
       <div class="admin-field">
         <label>כותרת ראשית (header)</label>
         <input type="text" class="admin-input" id="editLogoText" />
+      </div>
+      <div class="admin-field">
+        <label>תג גרסה (למשל v2.3)</label>
+        <input type="text" class="admin-input" id="editLogoVersion" />
+      </div>
+      <div class="admin-field">
+        <label>כתובית לוגו</label>
+        <input type="text" class="admin-input" id="editLogoSub" />
       </div>
       <div class="admin-field">
         <label>כותרת עמוד (tab)</label>
@@ -1346,10 +1610,19 @@ function openPanel(node) {
     });
   }
 
+  // Carousel placeholder — filled asynchronously
+  html += `<div id="carouselContainer"></div>`;
+
   document.getElementById('panelContent').innerHTML = html;
   document.getElementById('panel').classList.add('open');
   document.querySelectorAll('.panel-connection').forEach(el => {
     el.addEventListener('click', () => { const n = nodeMap[el.dataset.id]; if (n) openPanel(n); });
+  });
+
+  // Load carousel async
+  buildCarouselHTML(node).then(carouselHtml => {
+    const cc = document.getElementById('carouselContainer');
+    if (cc) cc.innerHTML = carouselHtml;
   });
 }
 
@@ -1399,6 +1672,8 @@ document.getElementById('edgeCount').textContent = edges.length;
 // ADMIN SYSTEM
 // ══════════════════════════════════════════════════════
 const ADMIN_PASSWORD = 'itonut26';
+const SITE_PASSWORD  = 'itonut';
+const DRIVE_API_KEY  = ''; // Set your Google Drive API key here
 const LS_KEY = 'kgraph_v22';
 let isAdmin    = false;
 let hasUnsaved = false;
@@ -1415,6 +1690,8 @@ function applySiteText() {
   document.getElementById('statsLabelNodes').textContent = siteText.labelNodes;
   document.getElementById('statsLabelEdges').textContent = siteText.labelEdges;
   document.getElementById('search').placeholder          = siteText.searchPlaceholder;
+  document.getElementById('logoVersion').textContent     = siteText.logoVersion;
+  document.getElementById('logoSub').textContent         = siteText.logoSub;
 }
 
 function saveToStorage() {
@@ -1457,6 +1734,8 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
+  logoVersion:       'v2.3',
+  logoSub:           'work in progress',
 };
 
 function applyLogoText(v)          { document.getElementById('logoText').textContent = v; }
@@ -1559,6 +1838,8 @@ document.querySelectorAll('.admin-tab').forEach(tab => {
 // ── Tab 1: Site Text ──
 function populateSiteTab() {
   document.getElementById('editLogoText').value          = siteText.logoText;
+  document.getElementById('editLogoVersion').value       = siteText.logoVersion;
+  document.getElementById('editLogoSub').value           = siteText.logoSub;
   document.getElementById('editPageTitle').value         = siteText.pageTitle;
   document.getElementById('editLabelNodes').value        = siteText.labelNodes;
   document.getElementById('editLabelEdges').value        = siteText.labelEdges;
@@ -1568,6 +1849,18 @@ function populateSiteTab() {
 document.getElementById('editLogoText').addEventListener('input', e => {
   siteText.logoText = e.target.value;
   document.getElementById('logoText').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editLogoVersion').addEventListener('input', e => {
+  siteText.logoVersion = e.target.value;
+  document.getElementById('logoVersion').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editLogoSub').addEventListener('input', e => {
+  siteText.logoSub = e.target.value;
+  document.getElementById('logoSub').textContent = e.target.value;
   markUnsaved();
 });
 
@@ -1706,9 +1999,136 @@ function escHtml(str) {
     .replace(/"/g,'&quot;');
 }
 
+// ══════════════════════════════════════════════════════
+// SITE GATE
+// ══════════════════════════════════════════════════════
+function checkSiteGate() {
+  let unlocked = false;
+  try { unlocked = sessionStorage.getItem('sg_unlocked') === '1'; } catch(e) {}
+  if (unlocked) {
+    document.getElementById('siteGate').classList.add('hidden');
+  } else {
+    setTimeout(() => document.getElementById('siteGateInput').focus(), 200);
+  }
+}
+
+function unlockSite() {
+  const val = document.getElementById('siteGateInput').value;
+  if (val === SITE_PASSWORD) {
+    try { sessionStorage.setItem('sg_unlocked', '1'); } catch(e) {}
+    document.getElementById('siteGate').classList.add('hidden');
+  } else {
+    const err = document.getElementById('siteGateError');
+    err.textContent = 'סיסמה שגויה';
+    document.getElementById('siteGateInput').value = '';
+    document.getElementById('siteGateInput').focus();
+    setTimeout(() => { err.textContent = ''; }, 2500);
+  }
+}
+
+document.getElementById('siteGateBtn').addEventListener('click', unlockSite);
+document.getElementById('siteGateInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') unlockSite();
+});
+
+// ══════════════════════════════════════════════════════
+// DRIVE CAROUSEL
+// ══════════════════════════════════════════════════════
+function extractDriveFolderId(url) {
+  if (!url) return null;
+  const m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+async function buildCarouselHTML(node) {
+  const folderId = extractDriveFolderId(node.url);
+  if (!folderId) return ''; // no Drive folder linked
+
+  if (!DRIVE_API_KEY) {
+    return `<div class="carousel-section">
+      <div class="carousel-no-key">
+        <div class="carousel-no-key-icon">🗂️</div>
+        <div>תצוגה מקדימה דורשת מפתח Google Drive API</div>
+      </div>
+    </div>`;
+  }
+
+  const container = document.getElementById('carouselContainer');
+  if (container) container.innerHTML = `<div class="carousel-section"><div class="carousel-loading">טוען קבצים...</div></div>`;
+
+  try {
+    const q   = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+    const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,thumbnailLink,webViewLink)&key=${DRIVE_API_KEY}&pageSize=20`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data  = await res.json();
+    const files = (data.files || []).filter(f =>
+      f.mimeType.startsWith('image/') ||
+      f.mimeType.startsWith('video/') ||
+      f.mimeType === 'application/vnd.google-apps.video'
+    );
+
+    if (!files.length) {
+      return `<div class="carousel-section">
+        <div class="carousel-no-key">
+          <div class="carousel-no-key-icon">📂</div>
+          <div>לא נמצאו קבצי מדיה בתיקייה</div>
+        </div>
+      </div>`;
+    }
+
+    const items = files.map((f, i) => {
+      const isVideo = f.mimeType.startsWith('video/') || f.mimeType === 'application/vnd.google-apps.video';
+      const thumb   = f.thumbnailLink || '';
+      const imgTag  = thumb
+        ? `<img src="${thumb}" alt="${escHtml(f.name)}" onerror="this.closest('.carousel-thumb').classList.add('thumb-error')" />`
+        : '';
+      const play    = isVideo ? `<div class="carousel-play-icon">▶</div>` : '';
+      return `<div class="carousel-item${i === 0 ? ' active' : ''}">
+        <a href="${escHtml(f.webViewLink)}" target="_blank">
+          <div class="carousel-thumb">${imgTag}${play}</div>
+        </a>
+        <div class="carousel-name">${escHtml(f.name)}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="carousel-section">
+      <div class="carousel-header-row">
+        <span class="carousel-title-txt">תיקיית Drive</span>
+        <span class="carousel-counter" id="carouselCounter">1 / ${files.length}</span>
+      </div>
+      ${items}
+      ${files.length > 1 ? `<div class="carousel-controls">
+        <button class="carousel-arrow" onclick="carouselMove(this, -1)">‹</button>
+        <button class="carousel-arrow" onclick="carouselMove(this, 1)">›</button>
+      </div>` : ''}
+    </div>`;
+  } catch(err) {
+    return `<div class="carousel-section">
+      <div class="carousel-no-key">
+        <div class="carousel-no-key-icon">⚠️</div>
+        <div>שגיאה בטעינת הקבצים</div>
+      </div>
+    </div>`;
+  }
+}
+
+function carouselMove(btn, dir) {
+  const section = btn.closest('.carousel-section');
+  const items   = section.querySelectorAll('.carousel-item');
+  let cur = 0;
+  items.forEach((el, i) => { if (el.classList.contains('active')) cur = i; });
+  items[cur].classList.remove('active');
+  cur = (cur + dir + items.length) % items.length;
+  items[cur].classList.add('active');
+  const counter = section.querySelector('#carouselCounter');
+  if (counter) counter.textContent = `${cur + 1} / ${items.length}`;
+}
+
 // ── BOOT ──
 for (let i = 0; i < 200; i++) simulate();
 draw();
+checkSiteGate();
 </script>
 </body>
 </html>
