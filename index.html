@@ -886,6 +886,15 @@
     animation: pulse 1.5s ease-in-out infinite;
   }
 
+  .drive-folder-embed {
+    width: 100%;
+    height: 320px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    display: block;
+  }
+
   .admin-save-btn {
     width: 100%;
     background: var(--accent-green);
@@ -1909,75 +1918,20 @@ function extractDriveFolderId(url) {
 
 async function buildCarouselHTML(node) {
   const folderId = extractDriveFolderId(node.url);
-  if (!folderId) return ''; // no Drive folder linked
+  if (!folderId) return '';
 
-  if (!DRIVE_API_KEY) {
-    return `<div class="carousel-section">
-      <div class="carousel-no-key">
-        <div class="carousel-no-key-icon">🗂️</div>
-        <div>תצוגה מקדימה דורשת מפתח Google Drive API</div>
-      </div>
-    </div>`;
-  }
-
-  const container = document.getElementById('carouselContainer');
-  if (container) container.innerHTML = `<div class="carousel-section"><div class="carousel-loading">טוען קבצים...</div></div>`;
-
-  try {
-    const q   = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
-    const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,thumbnailLink,webViewLink)&key=${DRIVE_API_KEY}&pageSize=20`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('API error ' + res.status);
-    const data  = await res.json();
-    const files = (data.files || []).filter(f =>
-      f.mimeType.startsWith('image/') ||
-      f.mimeType.startsWith('video/') ||
-      f.mimeType === 'application/vnd.google-apps.video'
-    );
-
-    if (!files.length) {
-      return `<div class="carousel-section">
-        <div class="carousel-no-key">
-          <div class="carousel-no-key-icon">📂</div>
-          <div>לא נמצאו קבצי מדיה בתיקייה</div>
-        </div>
-      </div>`;
-    }
-
-    const items = files.map((f, i) => {
-      const isVideo = f.mimeType.startsWith('video/') || f.mimeType === 'application/vnd.google-apps.video';
-      const thumb   = f.thumbnailLink || '';
-      const imgTag  = thumb
-        ? `<img src="${thumb}" alt="${escHtml(f.name)}" onerror="this.closest('.carousel-thumb').classList.add('thumb-error')" />`
-        : '';
-      const play    = isVideo ? `<div class="carousel-play-icon">▶</div>` : '';
-      return `<div class="carousel-item${i === 0 ? ' active' : ''}">
-        <a href="${escHtml(f.webViewLink)}" target="_blank">
-          <div class="carousel-thumb">${imgTag}${play}</div>
-        </a>
-        <div class="carousel-name">${escHtml(f.name)}</div>
-      </div>`;
-    }).join('');
-
-    return `<div class="carousel-section">
-      <div class="carousel-header-row">
-        <span class="carousel-title-txt">תיקיית Drive</span>
-        <span class="carousel-counter" id="carouselCounter">1 / ${files.length}</span>
-      </div>
-      ${items}
-      ${files.length > 1 ? `<div class="carousel-controls">
-        <button class="carousel-arrow" onclick="carouselMove(this, -1)">‹</button>
-        <button class="carousel-arrow" onclick="carouselMove(this, 1)">›</button>
-      </div>` : ''}
-    </div>`;
-  } catch(err) {
-    return `<div class="carousel-section">
-      <div class="carousel-no-key">
-        <div class="carousel-no-key-icon">⚠️</div>
-        <div>שגיאה בטעינת הקבצים</div>
-      </div>
-    </div>`;
-  }
+  return `<div class="carousel-section">
+    <div class="carousel-header-row">
+      <span class="carousel-title-txt">תיקיית Drive</span>
+      <a href="${escHtml(node.url)}" target="_blank" style="font-size:11px;color:var(--accent-blue);text-decoration:none;">פתח ב-Drive ↗</a>
+    </div>
+    <iframe
+      src="https://drive.google.com/embeddedfolderview?id=${folderId}#grid"
+      class="drive-folder-embed"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
+  </div>`;
 }
 
 function carouselMove(btn, dir) {
