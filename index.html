@@ -737,94 +737,6 @@
   .admin-logout-btn:hover { background: rgba(255, 77, 106, 0.15); }
 
   /* ══════════════════════════════════════
-     SITE GATE
-  ══════════════════════════════════════ */
-  .site-gate {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 3000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .site-gate.hidden { display: none; }
-
-  .site-gate-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 44px 36px 32px;
-    width: 360px;
-    text-align: center;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.8);
-  }
-
-  .site-gate-logo { font-size: 40px; margin-bottom: 16px; line-height: 1; }
-
-  .site-gate-title {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .site-gate-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 28px; }
-
-  .site-gate input[type="password"] {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Rubik', sans-serif;
-    font-size: 16px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    outline: none;
-    margin-bottom: 10px;
-    text-align: center;
-    letter-spacing: 5px;
-    direction: ltr;
-    transition: border-color 0.2s;
-  }
-
-  .site-gate input[type="password"]:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px var(--glow);
-  }
-
-  .site-gate input[type="password"]::placeholder {
-    letter-spacing: 2px;
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  .site-gate-error {
-    font-size: 12px;
-    color: var(--accent-red);
-    margin-bottom: 10px;
-    min-height: 16px;
-  }
-
-  .site-gate-btn {
-    width: 100%;
-    background: var(--accent-blue);
-    border: none;
-    color: #fff;
-    font-family: 'Rubik', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-
-  .site-gate-btn:hover  { opacity: 0.88; }
-  .site-gate-btn:active { transform: scale(0.98); }
-
-  /* ══════════════════════════════════════
      LOGO VERSION + SUB
   ══════════════════════════════════════ */
   .logo-text-wrap { display: flex; flex-direction: column; gap: 3px; }
@@ -1030,18 +942,6 @@
 
 <div class="search-box">
   <input type="text" id="search" placeholder="חיפוש בגרף..." />
-</div>
-
-<!-- ── Site Gate ── -->
-<div class="site-gate" id="siteGate">
-  <div class="site-gate-box">
-    <div class="site-gate-logo">🔒</div>
-    <div class="site-gate-title">ניהול ארכיון — גרף ידע</div>
-    <div class="site-gate-sub">הזן סיסמה לגישה</div>
-    <input type="password" id="siteGateInput" placeholder="סיסמה" autocomplete="off" />
-    <div class="site-gate-error" id="siteGateError"></div>
-    <button class="site-gate-btn" id="siteGateBtn">כניסה</button>
-  </div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -1672,7 +1572,6 @@ document.getElementById('edgeCount').textContent = edges.length;
 // ADMIN SYSTEM
 // ══════════════════════════════════════════════════════
 const ADMIN_PASSWORD = 'itonut26';
-const SITE_PASSWORD  = 'itonut';
 const DRIVE_API_KEY  = ''; // Set your Google Drive API key here
 const LS_KEY = 'kgraph_v22';
 let isAdmin    = false;
@@ -1734,7 +1633,7 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
-  logoVersion:       'v2.3',
+  logoVersion:       'v2.4',
   logoSub:           'work in progress',
 };
 
@@ -2000,38 +1899,6 @@ function escHtml(str) {
 }
 
 // ══════════════════════════════════════════════════════
-// SITE GATE
-// ══════════════════════════════════════════════════════
-function checkSiteGate() {
-  let unlocked = false;
-  try { unlocked = sessionStorage.getItem('sg_unlocked') === '1'; } catch(e) {}
-  if (unlocked) {
-    document.getElementById('siteGate').classList.add('hidden');
-  } else {
-    setTimeout(() => document.getElementById('siteGateInput').focus(), 200);
-  }
-}
-
-function unlockSite() {
-  const val = document.getElementById('siteGateInput').value;
-  if (val === SITE_PASSWORD) {
-    try { sessionStorage.setItem('sg_unlocked', '1'); } catch(e) {}
-    document.getElementById('siteGate').classList.add('hidden');
-  } else {
-    const err = document.getElementById('siteGateError');
-    err.textContent = 'סיסמה שגויה';
-    document.getElementById('siteGateInput').value = '';
-    document.getElementById('siteGateInput').focus();
-    setTimeout(() => { err.textContent = ''; }, 2500);
-  }
-}
-
-document.getElementById('siteGateBtn').addEventListener('click', unlockSite);
-document.getElementById('siteGateInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') unlockSite();
-});
-
-// ══════════════════════════════════════════════════════
 // DRIVE CAROUSEL
 // ══════════════════════════════════════════════════════
 function extractDriveFolderId(url) {
@@ -2128,7 +1995,6 @@ function carouselMove(btn, dir) {
 // ── BOOT ──
 for (let i = 0; i < 200; i++) simulate();
 draw();
-checkSiteGate();
 </script>
 </body>
 </html>
