@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="docTitle">ניהול ארכיון — Knowledge Graph</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e0e0e8;
+    --text-dim: #6e6e80;
+    --accent-red: #ff4d6a;
+    --accent-blue: #4d8bff;
+    --accent-green: #3dd68c;
+    --accent-orange: #ff9f43;
+    --accent-purple: #a855f7;
+    --accent-cyan: #22d3ee;
+    --accent-pink: #f472b6;
+    --glow: rgba(77, 139, 255, 0.15);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.95), rgba(10,10,15,0));
+    pointer-events: none;
+  }
+
+  .header > * { pointer-events: auto; }
+
+  .logo {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    box-shadow: 0 0 12px var(--accent-blue);
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  .stats span {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .admin-mode-indicator {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--accent-orange);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .admin-mode-indicator.show { display: flex; }
+
+  .admin-mode-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-orange);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .search-box {
+    position: fixed;
+    top: 60px;
+    right: 24px;
+    z-index: 100;
+  }
+
+  .search-box input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    width: 240px;
+    outline: none;
+    direction: rtl;
+    transition: border-color 0.2s;
+  }
+
+  .search-box input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--glow);
+  }
+
+  .search-box input::placeholder { color: var(--text-dim); }
+
+  /* ── Info Panel (left) ── */
+  .panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 380px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .panel.open { transform: translateX(0); }
+
+  .panel-close {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .panel-close:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+  .panel-category {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .panel-title {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .panel-meta {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .panel-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #b0b0c0;
+    margin-bottom: 20px;
+  }
+
+  .panel-connections-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .panel-connection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+  }
+
+  .panel-connection:hover { background: rgba(255,255,255,0.04); }
+
+  .conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .panel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-blue);
+    font-size: 13px;
+    text-decoration: none;
+    margin-top: 4px;
+    transition: opacity 0.2s;
+  }
+
+  .panel-link:hover { opacity: 0.7; }
+
+  /* ── Legend ── */
+  .legend {
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 500px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(18,18,26,0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .legend-item:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  .legend-item.active {
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+    background: rgba(30,30,46,0.9);
+  }
+
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    z-index: 300;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    max-width: 250px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .tooltip.show { opacity: 1; }
+  .tooltip-name { font-weight: 600; margin-bottom: 2px; }
+  .tooltip-cat { font-size: 10px; color: var(--text-dim); }
+
+  /* ── Controls ── */
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 24px;
+    z-index: 100;
+    display: flex;
+    gap: 6px;
+  }
+
+  .ctrl-btn {
+    background: rgba(18,18,26,0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .ctrl-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  .ctrl-btn.admin-active {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    box-shadow: 0 0 10px rgba(255, 159, 67, 0.2);
+  }
+
+  /* ══════════════════════════════════════
+     ADMIN MODAL
+  ══════════════════════════════════════ */
+  .admin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .admin-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .admin-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px 28px;
+    width: 340px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.7);
+    direction: rtl;
+    transform: translateY(-10px);
+    transition: transform 0.2s;
+  }
+
+  .admin-overlay.show .admin-modal {
+    transform: translateY(0);
+  }
+
+  .admin-modal-icon {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 14px;
+    line-height: 1;
+  }
+
+  .admin-modal-title {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .admin-modal-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .admin-modal input[type="password"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 10px;
+    direction: ltr;
+    text-align: center;
+    letter-spacing: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .admin-modal input[type="password"]:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--glow);
+  }
+
+  .admin-modal input[type="password"]::placeholder {
+    letter-spacing: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .admin-error {
+    font-size: 12px;
+    color: var(--accent-red);
+    text-align: center;
+    margin-bottom: 10px;
+    min-height: 16px;
+    transition: opacity 0.2s;
+  }
+
+  .admin-modal-btn {
+    width: 100%;
+    background: var(--accent-blue);
+    border: none;
+    color: #fff;
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 8px;
+  }
+
+  .admin-modal-btn:hover { opacity: 0.88; }
+  .admin-modal-btn:active { transform: scale(0.98); }
+
+  .admin-modal-cancel {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    padding: 7px;
+    cursor: pointer;
+    transition: color 0.2s;
+    border-radius: 6px;
+  }
+
+  .admin-modal-cancel:hover { color: var(--text); }
+
+  /* ══════════════════════════════════════
+     ADMIN PANEL (right side)
+  ══════════════════════════════════════ */
+  .admin-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 420px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-panel.open { transform: translateX(0); }
+
+  .admin-panel-header {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .admin-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .admin-badge {
+    background: var(--accent-orange);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .admin-panel-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .admin-panel-close:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+  /* Tabs */
+  .admin-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .admin-tab {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .admin-tab:hover { color: var(--text); }
+
+  .admin-tab.active {
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+  }
+
+  /* Tab content */
+  .admin-tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+  }
+
+  .admin-tab-content.active { display: block; }
+
+  /* Sections */
+  .admin-section { margin-bottom: 26px; }
+
+  .admin-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .admin-field { margin-bottom: 12px; }
+
+  .admin-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+  }
+
+  /* Shared input styles */
+  .admin-input, .admin-textarea, .admin-node-search {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    border-radius: 6px;
+    outline: none;
+    direction: rtl;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+  }
+
+  .admin-input:focus, .admin-textarea:focus, .admin-node-search:focus {
+    border-color: var(--accent-blue);
+    background: rgba(77, 139, 255, 0.05);
+  }
+
+  .admin-input { font-size: 13px; padding: 8px 12px; }
+  .admin-textarea {
+    font-size: 12px;
+    padding: 8px 12px;
+    resize: vertical;
+    min-height: 64px;
+    line-height: 1.55;
+  }
+
+  .admin-node-search {
+    font-size: 13px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .admin-node-search::placeholder { color: var(--text-dim); }
+
+  /* Node list items */
+  .admin-node-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .admin-node-item:hover { border-color: rgba(255,255,255,0.1); }
+
+  .admin-node-item-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .admin-node-cat-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .admin-node-cat-label { font-size: 10px; color: var(--text-dim); }
+
+  .admin-node-label-input {
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .admin-desc-toggle {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+    font-family: 'Rubik', sans-serif;
+    transition: color 0.2s;
+  }
+
+  .admin-desc-toggle:hover { color: var(--accent-blue); }
+
+  .admin-desc-area {
+    margin-top: 7px;
+    display: none;
+  }
+
+  .admin-desc-area.open { display: block; }
+
+  /* Category list items */
+  .admin-cat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .admin-cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .admin-cat-input { flex: 1; }
+
+  /* Footer */
+  .admin-panel-footer {
+    border-top: 1px solid var(--border);
+    padding: 14px 18px;
+    flex-shrink: 0;
+  }
+
+  .admin-logout-btn {
+    width: 100%;
+    background: rgba(255, 77, 106, 0.08);
+    border: 1px solid rgba(255, 77, 106, 0.25);
+    color: var(--accent-red);
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .admin-logout-btn:hover { background: rgba(255, 77, 106, 0.15); }
+
+  .admin-save-btn {
+    width: 100%;
+    background: var(--accent-green);
+    border: none;
+    color: #000;
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 8px;
+  }
+
+  .admin-save-btn:hover  { opacity: 0.88; }
+  .admin-save-btn:active { transform: scale(0.98); }
+
+  .admin-unsaved {
+    display: none;
+    font-size: 11px;
+    color: var(--accent-orange);
+    text-align: center;
+    margin-bottom: 8px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span id="logoText">ניהול ארכיון — גרף ידע</span>
+  </div>
+  <div class="header-right">
+    <div class="admin-mode-indicator" id="adminModeIndicator">
+      <div class="admin-mode-dot"></div>
+      מצב מנהל
+    </div>
+    <div class="stats">
+      <div>צמתים: <span id="nodeCount">0</span></div>
+      <div>קשרים: <span id="edgeCount">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="search-box">
+  <input type="text" id="search" placeholder="חיפוש בגרף..." />
+</div>
+
+<canvas id="canvas"></canvas>
+
+<!-- ── Info Panel (left) ── -->
+<div class="panel" id="panel">
+  <button class="panel-close" id="panelClose">✕</button>
+  <div id="panelContent"></div>
+</div>
+
+<!-- ── Tooltip ── -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-name" id="tooltipName"></div>
+  <div class="tooltip-cat" id="tooltipCat"></div>
+</div>
+
+<!-- ── Legend ── -->
+<div class="legend" id="legend"></div>
+
+<!-- ── Controls ── -->
+<div class="controls">
+  <button class="ctrl-btn" id="zoomIn" title="הגדל">+</button>
+  <button class="ctrl-btn" id="zoomOut" title="הקטן">−</button>
+  <button class="ctrl-btn" id="resetView" title="איפוס">⟲</button>
+  <button class="ctrl-btn" id="adminTrigger" title="כניסת מנהל">🔒</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN PASSWORD MODAL
+══════════════════════════════════════ -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-modal">
+    <div class="admin-modal-icon">🔐</div>
+    <div class="admin-modal-title">כניסת מנהל</div>
+    <div class="admin-modal-sub">הזן סיסמה לגישה לפאנל העריכה</div>
+    <input type="password" id="adminPasswordInput" placeholder="סיסמה" autocomplete="off" />
+    <div class="admin-error" id="adminError"></div>
+    <button class="admin-modal-btn" id="adminLoginBtn">כניסה</button>
+    <button class="admin-modal-cancel" id="adminCancelBtn">ביטול</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN PANEL (right side)
+══════════════════════════════════════ -->
+<div class="admin-panel" id="adminPanel">
+
+  <div class="admin-panel-header">
+    <div class="admin-panel-title">
+      <span>פאנל ניהול</span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <button class="admin-panel-close" id="adminPanelClose">✕</button>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="siteTab">כותרות האתר</button>
+    <button class="admin-tab" data-tab="nodesTab">צמתים</button>
+    <button class="admin-tab" data-tab="catsTab">קטגוריות</button>
+  </div>
+
+  <!-- Tab: Site text -->
+  <div class="admin-tab-content active" id="siteTab">
+    <div class="admin-section">
+      <div class="admin-section-title">טקסט כותרת</div>
+      <div class="admin-field">
+        <label>כותרת ראשית (header)</label>
+        <input type="text" class="admin-input" id="editLogoText" />
+      </div>
+      <div class="admin-field">
+        <label>כותרת עמוד (tab)</label>
+        <input type="text" class="admin-input" id="editPageTitle" />
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">תצוגת נתונים</div>
+      <div class="admin-field">
+        <label>תווית "צמתים"</label>
+        <input type="text" class="admin-input" id="editLabelNodes" />
+      </div>
+      <div class="admin-field">
+        <label>תווית "קשרים"</label>
+        <input type="text" class="admin-input" id="editLabelEdges" />
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">תיבת חיפוש</div>
+      <div class="admin-field">
+        <label>placeholder לחיפוש</label>
+        <input type="text" class="admin-input" id="editSearchPlaceholder" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Nodes -->
+  <div class="admin-tab-content" id="nodesTab">
+    <input type="text" class="admin-node-search" id="adminNodeSearch" placeholder="סנן צמתים..." />
+    <div id="nodeEditList"></div>
+  </div>
+
+  <!-- Tab: Categories -->
+  <div class="admin-tab-content" id="catsTab">
+    <div class="admin-section">
+      <div class="admin-section-title">שמות קטגוריות</div>
+      <div id="catEditList"></div>
+    </div>
+  </div>
+
+  <div class="admin-panel-footer">
+    <div class="admin-unsaved" id="adminUnsaved">● שינויים לא נשמרו</div>
+    <button class="admin-save-btn" id="adminSaveBtn">שמור שינויים</button>
+    <button class="admin-logout-btn" id="adminLogoutBtn">יציאה ממצב מנהל</button>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──
+const categories = {
+  'iran':           { label: 'איראן / ביטחון',         color: '#ff4d6a', icon: '🎯' },
+  'media':          { label: 'תקשורת / רגולציה',       color: '#4d8bff', icon: '📡' },
+  'accountability': { label: 'אחריותיות פוליטית',      color: '#ff9f43', icon: '⚖️' },
+  'judicial':       { label: 'רפורמה משפטית',          color: '#a855f7', icon: '🏛️' },
+  'oct7':           { label: 'אוקטובר 7 / מודיעין',   color: '#3dd68c', icon: '🔍' },
+  'person':         { label: 'דמויות מפתח',            color: '#22d3ee', icon: '👤' },
+  'source':         { label: 'מקורות / כלים',          color: '#6b7280', icon: '🗂️' },
+  'disinformation': { label: 'דיסאינפורמציה',          color: '#f472b6', icon: '⚠️' },
+};
+
+const nodes = [
+  { id: 'iran_lies',          label: 'נתניהו משקר על איראן',                  cat: 'iran',           size: 28, url: 'https://drive.google.com/drive/folders/1fZJ3-syhXsJHwt4nOS-6zRQNoxuogmHg', desc: 'מחקר על סתירות בהצהרות נתניהו וטראמפ בנושא ארסנל הטילים של איראן, הבדלים בין טענות ניצחון לבין הודאות מאוחרות על איומים מתמשכים.' },
+  { id: 'iran_weapons',       label: 'שקרים על כמות הנשק של איראן',           cat: 'iran',           size: 22, url: 'https://drive.google.com/drive/folders/1p2yPc0F-aH75QruoVdTJswdUhW3oM1j5', desc: 'ניתוח טענות סותרות לגבי מלאי הטילים האיראני — מרץ 2026.' },
+  { id: 'iran_arsenal',       label: "Fact-Checking Iran's Rocket Arsenal",   cat: 'iran',           size: 20, url: 'https://docs.google.com/document/d/1_f84ogNrOzGZiGMz8YHcls3U3T6Fl9JDD4Vu37HUPMI/edit', desc: 'ביקורת פורנזית של מלאי הטילים הבליסטיים של איראן 2024–2026.' },
+  { id: 'incitement_war',     label: 'הסתה בזמן מלחמה (איראן 2)',             cat: 'iran',           size: 18, url: 'https://drive.google.com/drive/folders/1FJNWH-xwtjaI2VaMZm2uwvjux6soGeYR', desc: 'הסתה פוליטית בזמן עימות ביטחוני פעיל.' },
+
+  { id: 'second_authority',   label: 'מינויים למועצת הרשות השנייה',           cat: 'media',          size: 26, url: 'https://drive.google.com/drive/folders/1LVYVKI2BmU9Y6MImpdbPKXxUJcyK-Yf7', desc: 'ניתוח מינויים פוליטיים למועצת הרשות השנייה והשלכותיהם על העברת הבעלות בערוץ 13.' },
+  { id: 'drahi',              label: 'פטריק דרהי / ערוץ 13',                  cat: 'media',          size: 24, url: 'https://docs.google.com/document/d/1nydz_huIOKIrz4CkYkSDhIU3XWZrKBo3f0SgU6WGres/edit', desc: 'דרהי, אלטיס, HOT, ורכישת ערוץ 13. ניתוח חפיפה עם ערוץ 14 ו-i24NEWS.' },
+  { id: 'i24_gantz',          label: 'גנץ נגד i24NEWS',                       cat: 'media',          size: 18, url: 'https://docs.google.com/document/d/18QK-bdJGG24mdWOeZyT4otWMAzf0473poTUUR96PSyA/edit', desc: 'מכתב התראה לפני תביעה בגין סרטון ערוך של נאום גנץ.' },
+
+  { id: 'promises',           label: 'הבטחות לא לכהן עם בן גביר',            cat: 'accountability', size: 24, url: '', desc: 'תיעוד פוליטיקאים שהבטיחו לא להקים ממשלה עם בן גביר — והפרו.' },
+  { id: 'bardugo',            label: 'ברדוגו נגד חברי כנסת מהליכוד',         cat: 'accountability', size: 16, url: 'https://drive.google.com/drive/folders/10oABwb0usn03UtZ4sjTv3qGe6eTpZZLw', desc: 'עימותים פנים-קואליציוניים של ברדוגו עם חברי ליכוד.' },
+  { id: 'hamas_policy',       label: 'מדיניות ממשלה מול חמאס',               cat: 'accountability', size: 22, url: 'https://docs.google.com/document/d/1hDe2XYwQMAMaFJjL3tEV_IP8n05dlLNpIEmqOoTlXII/edit', desc: 'ציטוטים מבכירים על ״עניין אסטרטגי שחמאס ישלוט בעזה״.' },
+  { id: 'hamas_stays',        label: 'חמאס נשאר בעזה',                        cat: 'accountability', size: 18, url: 'https://drive.google.com/drive/folders/16q04TzI2JiwVGzYGV34XaAB6RnlT_VZy', desc: 'ראיות על כישלון מטרת המלחמה של חיסול חמאס.' },
+  { id: 'limor',              label: 'לימור סון הר-מלך בעזה',                 cat: 'accountability', size: 16, url: 'https://drive.google.com/drive/folders/1nTzmjusgKLRTFnkFJL2UMxyRs3xdgla5', desc: 'פעילות לימור סון הר-מלך בהקשר עזה.' },
+  { id: 'mansour',            label: 'הימין בעד מנסור עבאס',                  cat: 'accountability', size: 16, url: 'https://drive.google.com/drive/folders/1sxYnSUI4GXqSk_PmzGZ-00BfMvF0KBs3', desc: 'גורמי ימין שתמכו בשיתוף פעולה עם ראע״מ ומנסור עבאס.' },
+
+  { id: 'reform_war',         label: 'קידום ההפיכה בזמן עם כלביא',            cat: 'judicial',       size: 18, url: 'https://drive.google.com/drive/folders/1ySMDNfaRqTppfoCAc3q3c0cAI70nI35S', desc: 'קידום רפורמה משפטית במקביל למלחמה.' },
+  { id: 'idf_fit',            label: 'תומכי ממשלה מסבירים שצה״ל כשיר',       cat: 'judicial',       size: 16, url: 'https://drive.google.com/drive/folders/1sm0aKJMjr8KqKVvi6PN4cxt4HZ88jw9y', desc: 'טענות גורמי קואליציה על כשירות צה״ל בזמן מחאה.' },
+  { id: 'right_pilots',       label: 'ימנים נגד הטייסים',                     cat: 'judicial',       size: 20, url: 'https://drive.google.com/drive/folders/1fXI_lC3463LvUP1ckLWAAVeU_ZOPqnrb', desc: 'ציטוטים של אנשי קואליציה שתקפו טייסי חיל האוויר.' },
+  { id: 'coalition_pilots',   label: 'קואליציה וממשלה נגד הטייסים',           cat: 'judicial',       size: 18, url: 'https://drive.google.com/drive/folders/1h5K1bcc94cuOs-YAgBXEfFaADKGmgG6K', desc: 'תיעוד התקפות שיטתיות על סרבני מילואים.' },
+  { id: 'brothers',           label: 'אנשי ימין על אחים לנשק',               cat: 'judicial',       size: 18, url: 'https://drive.google.com/drive/folders/18JCbLEymBN05UQ8bVXlLesjC-XZbNZ_d', desc: 'חיפוש שבחים מהימין לאחים לנשק — כמעט ולא נמצאו.' },
+  { id: 'legal_advisors',     label: 'התקפות על יועמ״שים בוועדות',            cat: 'judicial',       size: 20, url: 'https://docs.google.com/document/d/11_aaqIxfRRiXlz6A0QiWxH5-0url9i3oFjaYH2X9BlM/edit', desc: 'תיעוד התקפות נציגי ממשלה על יועצים משפטיים של ועדות הכנסת.' },
+  { id: 'ag_attacks',         label: 'התקפות על היועמ"שית',                   cat: 'judicial',       size: 18, url: 'https://docs.google.com/document/d/1_jvpPoa8joYOjhiBdmahbr4jbw0tY3UX2s0yM198UkQ/edit', desc: 'התקפות ממשלתיות על היועצת המשפטית לממשלה.' },
+
+  { id: 'oct7_warnings',      label: 'התראות לפני 7 באוקטובר',               cat: 'oct7',           size: 26, url: 'https://drive.google.com/drive/folders/1B_hm7TDlcmNrBB08No4FEdVr8YqjnIlV', desc: 'תיעוד אזהרות מודיעיניות שהגיעו לנתניהו לפני המתקפה. הקלטות, פרוטוקולים, הצהרות אמ״ן ושב״כ.' },
+  { id: 'sinwar_doc',         label: 'מסמך סינוואר',                          cat: 'oct7',           size: 18, url: 'https://docs.google.com/document/d/1nbKc0ocCJJ6OStZ-cUkrJswWOHPQU1xxXHinTBlqiIE/edit', desc: 'מסמך חמאס פנימי — מסגור של i24 מול ניתוח ברגמן.' },
+  { id: 'hezbollah',          label: 'חוסר תגובה לחיזבאללה 2020–2023',       cat: 'oct7',           size: 20, url: 'https://drive.google.com/drive/folders/1uGvkMp6JIxN-44Ca1pvSCeMKOfdQ8vD9', desc: 'אי-תגובה ישראלית לתקיפות חיזבאללה לפני המלחמה.' },
+
+  { id: 'election_fraud',     label: 'תיאוריית זיוף בחירות',                 cat: 'disinformation', size: 22, url: 'https://drive.google.com/drive/folders/1jYYN-GoFZ4QVZT9WPvT9M8u9l-fvq4-l', desc: 'ניתוח תיאוריות קונספירציה סביב טוהר הבחירות בשיח הימני 2025–2026. הצהרת אמסלם.' },
+  { id: 'settlers',           label: 'טרור יהודי / התקפות מתנחלים',          cat: 'accountability', size: 18, url: 'https://drive.google.com/drive/folders/196f1jvxmVK4Chg4iz3UkqDwLZnU33XfB', desc: 'תיעוד אלימות מתנחלים — מקורות בצלם, יש דין.' },
+  { id: 'netanyahu_interviews', label: 'ראיונות נתניהו',                      cat: 'accountability', size: 16, url: 'https://drive.google.com/drive/folders/1FLC8wdttweweO-b2NZIBDuCRpfOfZbNt', desc: 'ארכיון ראיונות נתניהו.' },
+  { id: 'pmo_affairs',        label: 'פרשיות לשכת נתניהו',                   cat: 'accountability', size: 20, url: 'https://drive.google.com/drive/folders/16IyQnpjwHIhMfTgWsbXCEsBqiN13SIBb', desc: 'פרשיות שקשורות ללשכת ראש הממשלה.' },
+  { id: 'ziv_agmon',          label: 'זיו אגמון',                             cat: 'person',         size: 14, url: 'https://drive.google.com/drive/folders/1nk_gAi8KhNp35Kdrj1_Scpk4f1R8K6mY', desc: 'תיק מחקר על זיו אגמון.' },
+
+  { id: 'netanyahu',          label: 'בנימין נתניהו',                         cat: 'person',         size: 32, url: '', desc: 'ראש ממשלה — צומת מרכזי בכל תיקי המחקר.' },
+  { id: 'ben_gvir',           label: 'איתמר בן גביר',                         cat: 'person',         size: 20, url: '', desc: 'שר לביטחון לאומי.' },
+  { id: 'amsalem',            label: 'דוד אמסלם',                             cat: 'person',         size: 14, url: '', desc: 'שר — הצהרת זיוף בחירות בכנסת.' },
+  { id: 'drahi_person',       label: 'פטריק דרהי',                            cat: 'person',         size: 16, url: '', desc: 'בעל Altice/HOT/i24NEWS.' },
+  { id: 'bergman',            label: 'רונן ברגמן',                            cat: 'person',         size: 12, url: '', desc: 'חוקר ביטחוני — ניתוח מסמך סינוואר.' },
+  { id: 'trump',              label: 'דונלד טראמפ',                           cat: 'person',         size: 16, url: '', desc: 'נשיא ארה״ב — הצהרות על איראן.' },
+
+  { id: 'haaretz',            label: 'הארץ',                                  cat: 'source',         size: 14, url: '', desc: 'מקור חדשותי מרכזי.' },
+  { id: 'ynet',               label: 'Ynet',                                  cat: 'source',         size: 14, url: '', desc: 'מקור חדשותי מרכזי.' },
+  { id: 'ch13',               label: 'ערוץ 13',                               cat: 'source',         size: 16, url: '', desc: 'ערוץ טלוויזיה מרכזי — בעלות בהעברה.' },
+  { id: 'ch14',               label: 'ערוץ 14',                               cat: 'source',         size: 14, url: '', desc: 'ערוץ ימני.' },
+  { id: 'i24',                label: 'i24NEWS',                               cat: 'source',         size: 14, url: '', desc: 'ערוץ חדשות בינלאומי בבעלות דרהי.' },
+  { id: 'btselem',            label: 'בצלם',                                  cat: 'source',         size: 12, url: '', desc: 'ארגון זכויות אדם — מקור לתיעוד אלימות מתנחלים.' },
+];
+
+const edges = [
+  { from: 'iran_lies',        to: 'iran_weapons',       strength: 0.9  },
+  { from: 'iran_lies',        to: 'iran_arsenal',       strength: 0.85 },
+  { from: 'iran_lies',        to: 'netanyahu',          strength: 0.95 },
+  { from: 'iran_lies',        to: 'trump',              strength: 0.8  },
+  { from: 'iran_weapons',     to: 'iran_arsenal',       strength: 0.9  },
+  { from: 'incitement_war',   to: 'iran_lies',          strength: 0.7  },
+  { from: 'second_authority', to: 'drahi',              strength: 0.85 },
+  { from: 'second_authority', to: 'ch13',               strength: 0.9  },
+  { from: 'drahi',            to: 'drahi_person',       strength: 0.95 },
+  { from: 'drahi',            to: 'i24',                strength: 0.9  },
+  { from: 'drahi',            to: 'ch14',               strength: 0.7  },
+  { from: 'drahi',            to: 'ch13',               strength: 0.9  },
+  { from: 'drahi',            to: 'netanyahu',          strength: 0.8  },
+  { from: 'i24_gantz',        to: 'i24',                strength: 0.9  },
+  { from: 'i24_gantz',        to: 'drahi_person',       strength: 0.6  },
+  { from: 'sinwar_doc',       to: 'i24',                strength: 0.7  },
+  { from: 'sinwar_doc',       to: 'bergman',            strength: 0.8  },
+  { from: 'promises',         to: 'ben_gvir',           strength: 0.95 },
+  { from: 'promises',         to: 'netanyahu',          strength: 0.8  },
+  { from: 'hamas_policy',     to: 'netanyahu',          strength: 0.9  },
+  { from: 'hamas_policy',     to: 'hamas_stays',        strength: 0.85 },
+  { from: 'bardugo',          to: 'netanyahu',          strength: 0.5  },
+  { from: 'pmo_affairs',      to: 'netanyahu',          strength: 0.95 },
+  { from: 'netanyahu_interviews', to: 'netanyahu',      strength: 0.95 },
+  { from: 'settlers',         to: 'ben_gvir',           strength: 0.7  },
+  { from: 'settlers',         to: 'btselem',            strength: 0.8  },
+  { from: 'limor',            to: 'hamas_stays',        strength: 0.6  },
+  { from: 'mansour',          to: 'netanyahu',          strength: 0.5  },
+  { from: 'reform_war',       to: 'right_pilots',       strength: 0.8  },
+  { from: 'reform_war',       to: 'coalition_pilots',   strength: 0.8  },
+  { from: 'reform_war',       to: 'brothers',           strength: 0.7  },
+  { from: 'right_pilots',     to: 'coalition_pilots',   strength: 0.9  },
+  { from: 'right_pilots',     to: 'idf_fit',            strength: 0.7  },
+  { from: 'brothers',         to: 'coalition_pilots',   strength: 0.6  },
+  { from: 'legal_advisors',   to: 'ag_attacks',         strength: 0.85 },
+  { from: 'legal_advisors',   to: 'reform_war',         strength: 0.7  },
+  { from: 'ag_attacks',       to: 'netanyahu',          strength: 0.7  },
+  { from: 'oct7_warnings',    to: 'netanyahu',          strength: 0.9  },
+  { from: 'oct7_warnings',    to: 'sinwar_doc',         strength: 0.7  },
+  { from: 'oct7_warnings',    to: 'hezbollah',          strength: 0.6  },
+  { from: 'hezbollah',        to: 'iran_lies',          strength: 0.5  },
+  { from: 'sinwar_doc',       to: 'netanyahu',          strength: 0.7  },
+  { from: 'election_fraud',   to: 'amsalem',            strength: 0.9  },
+  { from: 'election_fraud',   to: 'netanyahu',          strength: 0.6  },
+  { from: 'incitement_war',   to: 'reform_war',         strength: 0.5  },
+  { from: 'second_authority', to: 'netanyahu',          strength: 0.7  },
+  { from: 'oct7_warnings',    to: 'hamas_policy',       strength: 0.65 },
+  { from: 'idf_fit',          to: 'oct7_warnings',      strength: 0.5  },
+  { from: 'iran_lies',        to: 'haaretz',            strength: 0.4  },
+  { from: 'oct7_warnings',    to: 'ynet',               strength: 0.4  },
+  { from: 'hamas_policy',     to: 'haaretz',            strength: 0.4  },
+  { from: 'drahi',            to: 'haaretz',            strength: 0.3  },
+];
+
+// ── CANVAS & SIMULATION ──
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const nodeMap = {};
+nodes.forEach((n, i) => {
+  const angle = (i / nodes.length) * Math.PI * 2;
+  const r = 150 + Math.random() * 200;
+  n.x  = W / 2 + Math.cos(angle) * r;
+  n.y  = H / 2 + Math.sin(angle) * r;
+  n.vx = 0; n.vy = 0;
+  nodeMap[n.id] = n;
+});
+
+let cam       = { x: 0, y: 0, zoom: 1 };
+let targetCam = { x: 0, y: 0, zoom: 1 };
+
+function screenToWorld(sx, sy) {
+  return { x: (sx - W/2) / cam.zoom + W/2 + cam.x,
+           y: (sy - H/2) / cam.zoom + H/2 + cam.y };
+}
+
+function simulate() {
+  const repulsion  = 8000;
+  const attraction = 0.0004;
+  const damping    = 0.85;
+  const centerPull = 0.001;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const a = nodes[i];
+    a.vx += (W/2 - a.x) * centerPull;
+    a.vy += (H/2 - a.y) * centerPull;
+    for (let j = i+1; j < nodes.length; j++) {
+      const b  = nodes[j];
+      let dx   = a.x - b.x, dy = a.y - b.y;
+      let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      let f    = repulsion / (dist * dist);
+      let fx   = (dx/dist)*f, fy = (dy/dist)*f;
+      a.vx += fx; a.vy += fy;
+      b.vx -= fx; b.vy -= fy;
+    }
+  }
+
+  edges.forEach(e => {
+    const a = nodeMap[e.from], b = nodeMap[e.to];
+    if (!a || !b) return;
+    let dx   = b.x - a.x, dy = b.y - a.y;
+    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    let target = 180 / (e.strength || 0.5);
+    let f  = (dist - target) * attraction * (e.strength || 0.5);
+    let fx = (dx/dist)*f, fy = (dy/dist)*f;
+    a.vx += fx; a.vy += fy;
+    b.vx -= fx; b.vy -= fy;
+  });
+
+  nodes.forEach(n => {
+    n.vx *= damping; n.vy *= damping;
+    n.x  += n.vx;    n.y  += n.vy;
+  });
+}
+
+// ── INTERACTION STATE ──
+let hoveredNode  = null;
+let selectedNode = null;
+let dragging     = null;
+let dragOffset   = { x: 0, y: 0 };
+let isPanning    = false;
+let panStart     = { x: 0, y: 0 };
+let activeCategory = null;
+let searchTerm   = '';
+
+// ── DRAW ──
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  cam.x    += (targetCam.x    - cam.x)    * 0.08;
+  cam.y    += (targetCam.y    - cam.y)    * 0.08;
+  cam.zoom += (targetCam.zoom - cam.zoom) * 0.08;
+
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  ctx.scale(cam.zoom, cam.zoom);
+  ctx.translate(-W/2 - cam.x, -H/2 - cam.y);
+
+  // Edges
+  edges.forEach(e => {
+    const a = nodeMap[e.from], b = nodeMap[e.to];
+    if (!a || !b) return;
+    let alpha = 0.08 + (e.strength||0.5) * 0.12;
+    const focus = hoveredNode || selectedNode;
+    if (focus) {
+      alpha = (e.from === focus.id || e.to === focus.id)
+        ? 0.4 + (e.strength||0.5)*0.4
+        : 0.02;
+    }
+    if (activeCategory && a.cat !== activeCategory && b.cat !== activeCategory) alpha = 0.02;
+    if (searchTerm && !a.label.includes(searchTerm) && !b.label.includes(searchTerm)) alpha = 0.02;
+
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(100,120,160,${alpha})`;
+    ctx.lineWidth   = 0.5 + (e.strength||0.5)*1.5;
+    ctx.stroke();
+  });
+
+  // Nodes
+  nodes.forEach(n => {
+    const cat = categories[n.cat];
+    let alpha = 1, sizeMultiplier = 1;
+    const focus = hoveredNode || selectedNode;
+    if (focus) {
+      if (n.id === focus.id) {
+        sizeMultiplier = 1.15;
+      } else {
+        const connected = edges.some(e =>
+          (e.from === focus.id && e.to === n.id) ||
+          (e.to   === focus.id && e.from === n.id)
+        );
+        alpha = connected ? 0.9 : 0.15;
+      }
+    }
+    if (activeCategory && n.cat !== activeCategory) alpha = 0.12;
+    if (searchTerm) alpha = n.label.includes(searchTerm) ? 1 : 0.1;
+
+    const r = (n.size / 2) * sizeMultiplier;
+
+    if (alpha > 0.5) {
+      const grad = ctx.createRadialGradient(n.x, n.y, r*0.5, n.x, n.y, r*3);
+      grad.addColorStop(0, cat.color + '30');
+      grad.addColorStop(1, cat.color + '00');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r*3, 0, Math.PI*2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI*2);
+    ctx.fillStyle   = cat.color + Math.round(alpha*200).toString(16).padStart(2,'0');
+    ctx.fill();
+    ctx.strokeStyle = cat.color + Math.round(alpha*100).toString(16).padStart(2,'0');
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+
+    if (cam.zoom > 0.5 && r * cam.zoom > 6) {
+      const fontSize = Math.max(9, Math.min(13, r*0.8));
+      ctx.font      = `500 ${fontSize}px Rubik`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(255,255,255,${alpha*0.9})`;
+      const maxW = r * 4;
+      let label = n.label;
+      if (ctx.measureText(label).width > maxW) {
+        while (ctx.measureText(label+'…').width > maxW && label.length > 3)
+          label = label.slice(0,-1);
+        label += '…';
+      }
+      ctx.fillText(label, n.x, n.y + r + fontSize + 2);
+    }
+  });
+
+  ctx.restore();
+  simulate();
+  requestAnimationFrame(draw);
+}
+
+// ── MOUSE / TOUCH ──
+function getNodeAt(sx, sy) {
+  const w = screenToWorld(sx, sy);
+  for (let i = nodes.length-1; i >= 0; i--) {
+    const n = nodes[i];
+    const dx = w.x - n.x, dy = w.y - n.y;
+    const r  = n.size/2 + 5;
+    if (dx*dx + dy*dy < r*r) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousemove', e => {
+  if (isPanning) {
+    targetCam.x -= (e.clientX - panStart.x) / cam.zoom;
+    targetCam.y -= (e.clientY - panStart.y) / cam.zoom;
+    panStart = { x: e.clientX, y: e.clientY };
+    return;
+  }
+  if (dragging) {
+    const w = screenToWorld(e.clientX, e.clientY);
+    dragging.x = w.x + dragOffset.x;
+    dragging.y = w.y + dragOffset.y;
+    dragging.vx = dragging.vy = 0;
+    return;
+  }
+  const node = getNodeAt(e.clientX, e.clientY);
+  hoveredNode = node;
+  canvas.style.cursor = node ? 'pointer' : 'grab';
+  const tip = document.getElementById('tooltip');
+  if (node) {
+    tip.classList.add('show');
+    document.getElementById('tooltipName').textContent = node.label;
+    document.getElementById('tooltipCat').textContent  = categories[node.cat].label;
+    tip.style.left = (e.clientX + 14) + 'px';
+    tip.style.top  = (e.clientY - 10) + 'px';
+  } else {
+    tip.classList.remove('show');
+  }
+});
+
+canvas.addEventListener('mousedown', e => {
+  const node = getNodeAt(e.clientX, e.clientY);
+  if (node) {
+    const w = screenToWorld(e.clientX, e.clientY);
+    dragging   = node;
+    dragOffset = { x: node.x - w.x, y: node.y - w.y };
+  } else {
+    isPanning = true;
+    panStart  = { x: e.clientX, y: e.clientY };
+    canvas.style.cursor = 'grabbing';
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (dragging && !isPanning) {
+    const node = getNodeAt(e.clientX, e.clientY);
+    if (node && node === dragging) openPanel(node);
+  }
+  dragging = null; isPanning = false;
+  canvas.style.cursor = 'grab';
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 0.9 : 1.1;
+  targetCam.zoom = Math.max(0.2, Math.min(4, targetCam.zoom * factor));
+}, { passive: false });
+
+let lastTouchDist = 0;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    const node = getNodeAt(t.clientX, t.clientY);
+    if (node) {
+      const w = screenToWorld(t.clientX, t.clientY);
+      dragging   = node;
+      dragOffset = { x: node.x - w.x, y: node.y - w.y };
+    } else {
+      isPanning = true;
+      panStart  = { x: t.clientX, y: t.clientY };
+    }
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    if (dragging) {
+      const w = screenToWorld(t.clientX, t.clientY);
+      dragging.x = w.x + dragOffset.x;
+      dragging.y = w.y + dragOffset.y;
+      dragging.vx = dragging.vy = 0;
+    } else if (isPanning) {
+      targetCam.x -= (t.clientX - panStart.x) / cam.zoom;
+      targetCam.y -= (t.clientY - panStart.y) / cam.zoom;
+      panStart = { x: t.clientX, y: t.clientY };
+    }
+  } else if (e.touches.length === 2) {
+    const dx   = e.touches[0].clientX - e.touches[1].clientX;
+    const dy   = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (lastTouchDist) targetCam.zoom = Math.max(0.2, Math.min(4, targetCam.zoom * (dist/lastTouchDist)));
+    lastTouchDist = dist;
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if (dragging) openPanel(dragging);
+  dragging = null; isPanning = false; lastTouchDist = 0;
+});
+
+// ── INFO PANEL ──
+function openPanel(node) {
+  selectedNode = node;
+  const cat = categories[node.cat];
+  const connections = edges
+    .filter(e => e.from === node.id || e.to === node.id)
+    .map(e => ({ node: nodeMap[e.from === node.id ? e.to : e.from], strength: e.strength }))
+    .filter(c => c.node)
+    .sort((a,b) => b.strength - a.strength);
+
+  let html = `
+    <div class="panel-category" style="background:${cat.color}22;color:${cat.color}">${cat.icon} ${cat.label}</div>
+    <div class="panel-title">${node.label}</div>
+    <div class="panel-meta"><div>${connections.length} קשרים</div></div>
+  `;
+  if (node.desc) html += `<div class="panel-desc">${node.desc}</div>`;
+  if (node.url)  html += `<a class="panel-link" href="${node.url}" target="_blank">פתח ב-Google Drive →</a><br><br>`;
+  if (connections.length > 0) {
+    html += `<div class="panel-connections-title">קשרים</div>`;
+    connections.forEach(c => {
+      const cc = categories[c.node.cat];
+      html += `<div class="panel-connection" data-id="${c.node.id}">
+        <div class="conn-dot" style="background:${cc.color}"></div>
+        <div>${c.node.label}</div>
+      </div>`;
+    });
+  }
+
+  document.getElementById('panelContent').innerHTML = html;
+  document.getElementById('panel').classList.add('open');
+  document.querySelectorAll('.panel-connection').forEach(el => {
+    el.addEventListener('click', () => { const n = nodeMap[el.dataset.id]; if (n) openPanel(n); });
+  });
+}
+
+document.getElementById('panelClose').addEventListener('click', () => {
+  document.getElementById('panel').classList.remove('open');
+  selectedNode = null;
+});
+
+// ── SEARCH ──
+document.getElementById('search').addEventListener('input', e => { searchTerm = e.target.value.trim(); });
+
+// ── LEGEND ──
+function buildLegend() {
+  const legendEl = document.getElementById('legend');
+  legendEl.innerHTML = '';
+  Object.entries(categories).forEach(([key, cat]) => {
+    const item = document.createElement('div');
+    item.className   = 'legend-item';
+    item.dataset.key = key;
+    if (activeCategory === key) item.classList.add('active');
+    item.innerHTML = `<div class="legend-dot" style="background:${cat.color}"></div>${cat.label}`;
+    item.addEventListener('click', () => {
+      activeCategory = (activeCategory === key) ? null : key;
+      buildLegend();
+    });
+    legendEl.appendChild(item);
+  });
+}
+buildLegend();
+
+// ── CONTROLS ──
+document.getElementById('zoomIn').addEventListener('click',    () => { targetCam.zoom = Math.min(4, targetCam.zoom * 1.3); });
+document.getElementById('zoomOut').addEventListener('click',   () => { targetCam.zoom = Math.max(0.2, targetCam.zoom * 0.7); });
+document.getElementById('resetView').addEventListener('click', () => {
+  targetCam = { x:0, y:0, zoom:1 };
+  activeCategory = null;
+  searchTerm = '';
+  document.getElementById('search').value = '';
+  buildLegend();
+});
+
+// ── STATS ──
+document.getElementById('nodeCount').textContent = nodes.length;
+document.getElementById('edgeCount').textContent = edges.length;
+
+// ══════════════════════════════════════════════════════
+// ADMIN SYSTEM
+// ══════════════════════════════════════════════════════
+const ADMIN_PASSWORD = 'itonut26';
+const LS_KEY = 'kgraph_v22';
+let isAdmin    = false;
+let hasUnsaved = false;
+
+function markUnsaved() {
+  if (!isAdmin) return;
+  hasUnsaved = true;
+  document.getElementById('adminUnsaved').style.display = 'block';
+}
+
+function applySiteText() {
+  document.getElementById('logoText').textContent        = siteText.logoText;
+  document.getElementById('docTitle').textContent        = siteText.pageTitle;
+  document.getElementById('statsLabelNodes').textContent = siteText.labelNodes;
+  document.getElementById('statsLabelEdges').textContent = siteText.labelEdges;
+  document.getElementById('search').placeholder          = siteText.searchPlaceholder;
+}
+
+function saveToStorage() {
+  const data = {
+    siteText: { ...siteText },
+    nodes: nodes.map(n => ({ id: n.id, label: n.label, desc: n.desc })),
+    cats:  Object.fromEntries(Object.entries(categories).map(([k,v]) => [k, v.label]))
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) { return; }
+  hasUnsaved = false;
+  document.getElementById('adminUnsaved').style.display = 'none';
+  const btn = document.getElementById('adminSaveBtn');
+  btn.textContent = '✓ נשמר!';
+  setTimeout(() => { btn.textContent = 'שמור שינויים'; }, 2200);
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.siteText) Object.assign(siteText, data.siteText);
+    if (data.nodes) data.nodes.forEach(s => {
+      const n = nodeMap[s.id];
+      if (n) {
+        if (s.label != null) n.label = s.label;
+        if (s.desc  != null) n.desc  = s.desc;
+      }
+    });
+    if (data.cats) Object.entries(data.cats).forEach(([key, label]) => {
+      if (categories[key] && label != null) categories[key].label = label;
+    });
+  } catch(e) { /* localStorage unavailable or data corrupt — ignore */ }
+}
+
+// -- Strings that can be edited (defaults) --
+const siteText = {
+  logoText:          'ניהול ארכיון — גרף ידע',
+  pageTitle:         'ניהול ארכיון — Knowledge Graph',
+  labelNodes:        'צמתים',
+  labelEdges:        'קשרים',
+  searchPlaceholder: 'חיפוש בגרף...',
+};
+
+function applyLogoText(v)          { document.getElementById('logoText').textContent = v; }
+function applyPageTitle(v)         { document.getElementById('docTitle').textContent = v; }
+function applyLabelNodes(v)        { document.querySelector('#nodeCount').previousSibling.textContent = v + ': '; }
+function applyLabelEdges(v)        { document.querySelector('#edgeCount').previousSibling.textContent = v + ': '; }
+function applySearchPlaceholder(v) { document.getElementById('search').placeholder = v; }
+
+// Fix stats labels to have separate text nodes
+(function fixStatsDOM() {
+  const stats = document.querySelector('.stats');
+  stats.innerHTML = `
+    <div><span id="statsLabelNodes">${siteText.labelNodes}</span>: <span id="nodeCount">${nodes.length}</span></div>
+    <div><span id="statsLabelEdges">${siteText.labelEdges}</span>: <span id="edgeCount">${edges.length}</span></div>
+  `;
+})();
+
+// Load any saved admin changes and apply to DOM
+loadFromStorage();
+applySiteText();
+
+// -- Modal --
+function showAdminModal() {
+  document.getElementById('adminPasswordInput').value = '';
+  document.getElementById('adminError').textContent   = '';
+  document.getElementById('adminOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('adminPasswordInput').focus(), 200);
+}
+
+function closeAdminModal() {
+  document.getElementById('adminOverlay').classList.remove('show');
+}
+
+function loginAdmin() {
+  const pw = document.getElementById('adminPasswordInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    closeAdminModal();
+    openAdminPanel();
+    document.getElementById('adminTrigger').classList.add('admin-active');
+    document.getElementById('adminModeIndicator').classList.add('show');
+  } else {
+    const errEl = document.getElementById('adminError');
+    errEl.textContent = 'סיסמה שגויה';
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('adminPasswordInput').focus();
+    setTimeout(() => { errEl.textContent = ''; }, 2500);
+  }
+}
+
+document.getElementById('adminTrigger').addEventListener('click', () => {
+  if (isAdmin) {
+    // toggle admin panel
+    const p = document.getElementById('adminPanel');
+    p.classList.contains('open') ? p.classList.remove('open') : p.classList.add('open');
+  } else {
+    showAdminModal();
+  }
+});
+
+document.getElementById('adminLoginBtn').addEventListener('click', loginAdmin);
+document.getElementById('adminPasswordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginAdmin();
+  if (e.key === 'Escape') closeAdminModal();
+});
+document.getElementById('adminCancelBtn').addEventListener('click', closeAdminModal);
+document.getElementById('adminOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('adminOverlay')) closeAdminModal();
+});
+
+// -- Admin Panel --
+function openAdminPanel() {
+  populateSiteTab();
+  populateNodeTab();
+  populateCatTab();
+  document.getElementById('adminPanel').classList.add('open');
+}
+
+document.getElementById('adminPanelClose').addEventListener('click', () => {
+  document.getElementById('adminPanel').classList.remove('open');
+});
+
+document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+  isAdmin = false;
+  document.getElementById('adminPanel').classList.remove('open');
+  document.getElementById('adminTrigger').classList.remove('admin-active');
+  document.getElementById('adminModeIndicator').classList.remove('show');
+});
+
+// -- Tabs --
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Tab 1: Site Text ──
+function populateSiteTab() {
+  document.getElementById('editLogoText').value          = siteText.logoText;
+  document.getElementById('editPageTitle').value         = siteText.pageTitle;
+  document.getElementById('editLabelNodes').value        = siteText.labelNodes;
+  document.getElementById('editLabelEdges').value        = siteText.labelEdges;
+  document.getElementById('editSearchPlaceholder').value = siteText.searchPlaceholder;
+}
+
+document.getElementById('editLogoText').addEventListener('input', e => {
+  siteText.logoText = e.target.value;
+  document.getElementById('logoText').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editPageTitle').addEventListener('input', e => {
+  siteText.pageTitle = e.target.value;
+  document.getElementById('docTitle').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editLabelNodes').addEventListener('input', e => {
+  siteText.labelNodes = e.target.value;
+  document.getElementById('statsLabelNodes').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editLabelEdges').addEventListener('input', e => {
+  siteText.labelEdges = e.target.value;
+  document.getElementById('statsLabelEdges').textContent = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('editSearchPlaceholder').addEventListener('input', e => {
+  siteText.searchPlaceholder = e.target.value;
+  document.getElementById('search').placeholder = e.target.value;
+  markUnsaved();
+});
+
+document.getElementById('adminSaveBtn').addEventListener('click', saveToStorage);
+
+// ── Tab 2: Nodes ──
+function populateNodeTab(filter) {
+  filter = (filter || '').trim().toLowerCase();
+  const container = document.getElementById('nodeEditList');
+  const filtered  = filter
+    ? nodes.filter(n => n.label.toLowerCase().includes(filter) || categories[n.cat].label.includes(filter))
+    : nodes;
+
+  container.innerHTML = filtered.map(n => {
+    const cat      = categories[n.cat];
+    const labelVal = escHtml(n.label);
+    const descVal  = escHtml(n.desc || '');
+    return `
+      <div class="admin-node-item">
+        <div class="admin-node-item-header">
+          <span class="admin-node-cat-dot" style="background:${cat.color}"></span>
+          <span class="admin-node-cat-label">${cat.label}</span>
+        </div>
+        <input
+          type="text"
+          class="admin-input admin-node-label-input"
+          data-nid="${n.id}"
+          data-field="label"
+          value="${labelVal}"
+          placeholder="שם הצומת"
+        />
+        <button class="admin-desc-toggle" data-nid="${n.id}">+ ערוך תיאור</button>
+        <div class="admin-desc-area" id="descArea_${n.id}">
+          <textarea
+            class="admin-textarea"
+            data-nid="${n.id}"
+            data-field="desc"
+            placeholder="תיאור הצומת"
+            rows="3"
+          >${descVal}</textarea>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // bind label inputs
+  container.querySelectorAll('input[data-field="label"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const node = nodeMap[e.target.dataset.nid];
+      if (node) node.label = e.target.value;
+      markUnsaved();
+    });
+  });
+
+  // bind desc textareas
+  container.querySelectorAll('textarea[data-field="desc"]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const node = nodeMap[e.target.dataset.nid];
+      if (node) node.desc = e.target.value;
+      markUnsaved();
+    });
+  });
+
+  // bind desc toggles
+  container.querySelectorAll('.admin-desc-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const area = document.getElementById('descArea_' + btn.dataset.nid);
+      const open = area.classList.toggle('open');
+      btn.textContent = open ? '− סגור תיאור' : '+ ערוך תיאור';
+    });
+  });
+}
+
+document.getElementById('adminNodeSearch').addEventListener('input', e => {
+  populateNodeTab(e.target.value);
+});
+
+// ── Tab 3: Categories ──
+function populateCatTab() {
+  const container = document.getElementById('catEditList');
+  container.innerHTML = Object.entries(categories).map(([key, cat]) => `
+    <div class="admin-cat-item">
+      <span class="admin-cat-dot" style="background:${cat.color}"></span>
+      <input
+        type="text"
+        class="admin-input admin-cat-input"
+        data-catkey="${key}"
+        value="${escHtml(cat.label)}"
+        placeholder="שם קטגוריה"
+      />
+    </div>
+  `).join('');
+
+  container.querySelectorAll('input[data-catkey]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const key = e.target.dataset.catkey;
+      if (categories[key]) {
+        categories[key].label = e.target.value;
+        buildLegend();
+        markUnsaved();
+      }
+    });
+  });
+}
+
+// ── Utility ──
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── BOOT ──
+for (let i = 0; i < 200; i++) simulate();
+draw();
+</script>
+</body>
+</html>
