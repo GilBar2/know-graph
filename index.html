@@ -1023,6 +1023,23 @@
   }
   .admin-img-btn:hover { color: var(--accent-purple); }
 
+  .admin-auto-fetch-btn {
+    width: 100%;
+    background: rgba(77,139,255,0.1);
+    border: 1px solid rgba(77,139,255,0.3);
+    color: var(--accent-blue);
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 10px;
+  }
+  .admin-auto-fetch-btn:hover { background: rgba(77,139,255,0.18); }
+  .admin-auto-fetch-btn:disabled { opacity: 0.5; cursor: default; }
+
   /* ══════════════════════════════════════
      TOOLTIP THUMBNAIL
   ══════════════════════════════════════ */
@@ -1149,7 +1166,7 @@
 
 <!-- ── Tooltip ── -->
 <div class="tooltip" id="tooltip">
-  <img class="tooltip-thumb" id="tooltipThumb" src="" alt="" style="display:none" />
+  <img class="tooltip-thumb" id="tooltipThumb" src="" alt="" style="display:none" onerror="this.style.display='none'" />
   <div class="tooltip-name" id="tooltipName"></div>
   <div class="tooltip-cat" id="tooltipCat"></div>
 </div>
@@ -1242,6 +1259,7 @@
 
   <!-- Tab: Nodes -->
   <div class="admin-tab-content" id="nodesTab">
+    <button class="admin-auto-fetch-btn" id="autoFetchBtn">🔄 אחזר תמונות אוטומטית מ-Drive</button>
     <input type="text" class="admin-node-search" id="adminNodeSearch" placeholder="סנן צמתים..." />
     <div id="nodeEditList"></div>
   </div>
@@ -1869,7 +1887,7 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
-  logoVersion:       'v2.6',
+  logoVersion:       'v2.7',
   logoSub:           'work in progress',
 };
 
@@ -2174,6 +2192,24 @@ document.getElementById('cropCancelBtn').addEventListener('click', () => {
   _pendingThumbNid = null;
 });
 
+// ── Auto-fetch thumbnails from Drive ──
+document.getElementById('autoFetchBtn').addEventListener('click', function () {
+  let count = 0;
+  nodes.forEach(n => {
+    if (n.thumb) return; // don't overwrite existing manual thumb
+    const folderId = extractDriveFolderId(n.url);
+    if (!folderId) return;
+    // Drive folder thumbnail — works for publicly shared folders
+    n.thumb = `https://drive.google.com/thumbnail?id=${folderId}&sz=w400-h400`;
+    count++;
+  });
+  if (count > 0) markUnsaved();
+  populateNodeTab(document.getElementById('adminNodeSearch').value);
+  this.textContent = count > 0 ? `✓ נוספו ${count} תמונות — שמור כדי לשמר` : '✓ כל הצמתים כבר עם תמונות';
+  this.disabled = true;
+  setTimeout(() => { this.textContent = '🔄 אחזר תמונות אוטומטית מ-Drive'; this.disabled = false; }, 3000);
+});
+
 // ── Tab 2: Nodes ──
 function populateNodeTab(filter) {
   filter = (filter || '').trim().toLowerCase();
@@ -2187,7 +2223,7 @@ function populateNodeTab(filter) {
     const labelVal = escHtml(n.label);
     const descVal  = escHtml(n.desc || '');
     const thumbHtml = n.thumb
-      ? `<img class="node-thumb-preview" src="${n.thumb}" alt="thumb" />`
+      ? `<img class="node-thumb-preview" src="${n.thumb}" alt="thumb" onerror="this.style.display='none'" />`
       : '';
     return `
       <div class="admin-node-item">
