@@ -2193,22 +2193,74 @@ document.getElementById('cropCancelBtn').addEventListener('click', () => {
   _pendingThumbNid = null;
 });
 
-// ── Auto-fetch thumbnails from Drive ──
+// ── Auto-generate thumbnails ──
+function generateNodeThumb(node) {
+  const cat = categories[node.cat];
+  const cv  = document.createElement('canvas');
+  cv.width  = cv.height = 180;
+  const ctx = cv.getContext('2d');
+
+  // Dark background
+  ctx.fillStyle = '#12121a';
+  ctx.fillRect(0, 0, 180, 180);
+
+  // Radial glow from category colour
+  const grad = ctx.createRadialGradient(90, 75, 0, 90, 75, 110);
+  grad.addColorStop(0, cat.color + '55');
+  grad.addColorStop(1, cat.color + '08');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 180, 180);
+
+  // Category icon
+  ctx.font = '52px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(cat.icon, 90, 72);
+
+  // Node label — truncate to fit
+  ctx.font = '600 13px Rubik, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.direction = 'rtl';
+  ctx.textBaseline = 'middle';
+  let label = node.label;
+  const maxW = 158;
+  if (ctx.measureText(label).width > maxW) {
+    while (ctx.measureText(label + '…').width > maxW && label.length > 1)
+      label = label.slice(0, -1);
+    label += '…';
+  }
+  ctx.fillText(label, 90, 128);
+
+  // Category colour bar at bottom
+  ctx.fillStyle = cat.color;
+  ctx.beginPath();
+  ctx.roundRect(0, 158, 180, 22, [0, 0, 6, 6]);
+  ctx.fill();
+
+  // Category label inside bar
+  ctx.font = '500 10px Rubik, sans-serif';
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.direction = 'rtl';
+  ctx.textBaseline = 'middle';
+  let catLabel = cat.label;
+  if (ctx.measureText(catLabel).width > 160) catLabel = catLabel.slice(0, 18) + '…';
+  ctx.fillText(catLabel, 90, 169);
+
+  return cv.toDataURL('image/jpeg', 0.88);
+}
+
 document.getElementById('autoFetchBtn').addEventListener('click', function () {
   let count = 0;
   nodes.forEach(n => {
-    if (n.thumb) return; // don't overwrite existing manual thumb
-    const folderId = extractDriveFolderId(n.url);
-    if (!folderId) return;
-    // Drive folder thumbnail — works for publicly shared folders
-    n.thumb = `https://drive.google.com/thumbnail?id=${folderId}&sz=w400-h400`;
+    if (n.thumb) return; // never overwrite a manually set thumb
+    n.thumb = generateNodeThumb(n);
     count++;
   });
   if (count > 0) markUnsaved();
   populateNodeTab(document.getElementById('adminNodeSearch').value);
-  this.textContent = count > 0 ? `✓ נוספו ${count} תמונות — שמור כדי לשמר` : '✓ כל הצמתים כבר עם תמונות';
+  this.textContent = count > 0 ? `✓ ${count} thumbnails added` : '✓ all nodes have thumbnails';
   this.disabled = true;
-  setTimeout(() => { this.textContent = '🔄 אחזר תמונות אוטומטית מ-Drive'; this.disabled = false; }, 3000);
+  setTimeout(() => { this.textContent = '🖼 auto thumbnail'; this.disabled = false; }, 2500);
 });
 
 // ── Tab 2: Nodes ──
