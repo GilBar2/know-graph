@@ -993,6 +993,7 @@
   .admin-connect-btn:active { transform: scale(0.98); }
   #adminConnectBtn    { background: var(--accent-blue);   color: #fff; }
   #adminDisconnectBtn { background: var(--accent-orange); color: #000; }
+  #autoFetchBtn       { background: var(--accent-purple); color: #fff; }
 
   /* ══════════════════════════════════════
      NODE LIST — CHECKBOX + IMAGE
@@ -1259,7 +1260,6 @@
 
   <!-- Tab: Nodes -->
   <div class="admin-tab-content" id="nodesTab">
-    <button class="admin-auto-fetch-btn" id="autoFetchBtn">🔄 אחזר תמונות אוטומטית מ-Drive</button>
     <input type="text" class="admin-node-search" id="adminNodeSearch" placeholder="סנן צמתים..." />
     <div id="nodeEditList"></div>
   </div>
@@ -1276,6 +1276,7 @@
     <div class="admin-connect-row">
       <button class="admin-connect-btn" id="adminConnectBtn">🔗 חיבור צמתים</button>
       <button class="admin-connect-btn" id="adminDisconnectBtn">✂️ ניתוק צמתים</button>
+      <button class="admin-connect-btn" id="autoFetchBtn">🖼 auto thumbnail</button>
     </div>
     <div class="admin-unsaved" id="adminUnsaved">● שינויים לא נשמרו</div>
     <button class="admin-save-btn" id="adminSaveBtn">שמור שינויים</button>
