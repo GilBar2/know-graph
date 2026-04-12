@@ -969,6 +969,144 @@
     /* Admin modal — full width */
     .admin-modal { width: calc(100vw - 32px); padding: 28px 20px 20px; }
   }
+
+  /* ══════════════════════════════════════
+     CONNECT / DISCONNECT BUTTONS
+  ══════════════════════════════════════ */
+  .admin-connect-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .admin-connect-btn {
+    flex: 1;
+    border: none;
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 6px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .admin-connect-btn:hover  { opacity: 0.85; }
+  .admin-connect-btn:active { transform: scale(0.98); }
+  #adminConnectBtn    { background: var(--accent-blue);   color: #fff; }
+  #adminDisconnectBtn { background: var(--accent-orange); color: #000; }
+
+  /* ══════════════════════════════════════
+     NODE LIST — CHECKBOX + IMAGE
+  ══════════════════════════════════════ */
+  .node-checkbox {
+    width: 14px; height: 14px;
+    cursor: pointer; flex-shrink: 0;
+    accent-color: var(--accent-blue);
+  }
+  .node-thumb-preview {
+    width: 100%; max-height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin: 6px 0;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .admin-node-btn-row {
+    display: flex; gap: 10px; align-items: center;
+    margin-bottom: 4px;
+  }
+  .admin-img-btn {
+    background: none; border: none;
+    color: var(--text-dim); font-size: 11px;
+    cursor: pointer; padding: 0;
+    font-family: 'Rubik', sans-serif;
+    transition: color 0.2s;
+  }
+  .admin-img-btn:hover { color: var(--accent-purple); }
+
+  /* ══════════════════════════════════════
+     TOOLTIP THUMBNAIL
+  ══════════════════════════════════════ */
+  .tooltip-thumb {
+    width: 100%; max-height: 110px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 7px;
+    display: block;
+  }
+
+  /* ══════════════════════════════════════
+     CROP TOOL MODAL
+  ══════════════════════════════════════ */
+  .crop-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .crop-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    direction: rtl;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.7);
+  }
+  .crop-modal-title {
+    font-size: 14px; font-weight: 600;
+    margin-bottom: 14px; text-align: center;
+  }
+  .crop-viewport {
+    width: 100%; height: 280px;
+    position: relative; overflow: hidden;
+    background: #000; border-radius: 8px;
+    cursor: crosshair; user-select: none;
+  }
+  .crop-source-img {
+    position: absolute;
+    pointer-events: none;
+  }
+  .crop-box {
+    position: absolute;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+    cursor: move; box-sizing: border-box;
+  }
+  .crop-handle {
+    position: absolute;
+    width: 12px; height: 12px;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.35);
+    border-radius: 2px;
+  }
+  .crop-handle.tl { top: -6px;    left: -6px;   cursor: nw-resize; }
+  .crop-handle.tr { top: -6px;    right: -6px;  cursor: ne-resize; }
+  .crop-handle.bl { bottom: -6px; left: -6px;   cursor: sw-resize; }
+  .crop-handle.br { bottom: -6px; right: -6px;  cursor: se-resize; }
+  .crop-hint {
+    font-size: 11px; color: var(--text-dim);
+    text-align: center; margin: 10px 0 14px;
+  }
+  .crop-actions { display: flex; gap: 8px; }
+  .crop-confirm-btn {
+    flex: 1; background: var(--accent-green);
+    border: none; color: #000;
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px; font-weight: 700;
+    padding: 10px; border-radius: 7px; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .crop-confirm-btn:hover { opacity: 0.88; }
+  .crop-cancel-btn {
+    flex: 0 0 80px; background: none;
+    border: 1px solid var(--border); color: var(--text-dim);
+    font-family: 'Rubik', sans-serif; font-size: 13px;
+    padding: 10px; border-radius: 7px; cursor: pointer;
+    transition: color 0.2s;
+  }
+  .crop-cancel-btn:hover { color: var(--text); }
 </style>
 </head>
 <body>
@@ -980,7 +1118,7 @@
     <div class="logo-text-wrap">
       <div class="logo-main-row">
         <span id="logoText">ניהול ארכיון — גרף ידע</span>
-        <span class="logo-version" id="logoVersion">v2.3</span>
+        <span class="logo-version" id="logoVersion">v2.6</span>
       </div>
       <div class="logo-sub" id="logoSub">work in progress</div>
     </div>
@@ -1011,6 +1149,7 @@
 
 <!-- ── Tooltip ── -->
 <div class="tooltip" id="tooltip">
+  <img class="tooltip-thumb" id="tooltipThumb" src="" alt="" style="display:none" />
   <div class="tooltip-name" id="tooltipName"></div>
   <div class="tooltip-cat" id="tooltipCat"></div>
 </div>
@@ -1116,11 +1255,41 @@
   </div>
 
   <div class="admin-panel-footer">
+    <div class="admin-connect-row">
+      <button class="admin-connect-btn" id="adminConnectBtn">🔗 חיבור צמתים</button>
+      <button class="admin-connect-btn" id="adminDisconnectBtn">✂️ ניתוק צמתים</button>
+    </div>
     <div class="admin-unsaved" id="adminUnsaved">● שינויים לא נשמרו</div>
     <button class="admin-save-btn" id="adminSaveBtn">שמור שינויים</button>
     <button class="admin-logout-btn" id="adminLogoutBtn">יציאה ממצב מנהל</button>
   </div>
 
+</div>
+
+<!-- Hidden file input for node thumbnails -->
+<input type="file" id="thumbFileInput" accept="image/*" style="display:none" />
+
+<!-- ══════════════════════════════════════
+     CROP TOOL MODAL
+══════════════════════════════════════ -->
+<div class="crop-overlay" id="cropOverlay" style="display:none">
+  <div class="crop-modal">
+    <div class="crop-modal-title">חתוך תמונה לתמונת מיניאטורה</div>
+    <div class="crop-viewport" id="cropViewport">
+      <img class="crop-source-img" id="cropSourceImg" src="" alt="" />
+      <div class="crop-box" id="cropBox">
+        <div class="crop-handle tl"></div>
+        <div class="crop-handle tr"></div>
+        <div class="crop-handle bl"></div>
+        <div class="crop-handle br"></div>
+      </div>
+    </div>
+    <div class="crop-hint">גרור להזזה · גרור פינה לשינוי גודל</div>
+    <div class="crop-actions">
+      <button class="crop-confirm-btn" id="cropConfirmBtn">✓ חתוך ושמור</button>
+      <button class="crop-cancel-btn" id="cropCancelBtn">ביטול</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1454,6 +1623,9 @@ canvas.addEventListener('mousemove', e => {
   const tip = document.getElementById('tooltip');
   if (node) {
     tip.classList.add('show');
+    const thumbEl = document.getElementById('tooltipThumb');
+    if (node.thumb) { thumbEl.src = node.thumb; thumbEl.style.display = 'block'; }
+    else { thumbEl.style.display = 'none'; }
     document.getElementById('tooltipName').textContent = node.label;
     document.getElementById('tooltipCat').textContent  = categories[node.cat].label;
     tip.style.left = (e.clientX + 14) + 'px';
@@ -1633,6 +1805,7 @@ const DRIVE_API_KEY  = ''; // Set your Google Drive API key here
 const LS_KEY = 'kgraph_v22';
 let isAdmin    = false;
 let hasUnsaved = false;
+const checkedNodes = new Set();
 
 function markUnsaved() {
   if (!isAdmin) return;
@@ -1653,8 +1826,9 @@ function applySiteText() {
 function saveToStorage() {
   const data = {
     siteText: { ...siteText },
-    nodes: nodes.map(n => ({ id: n.id, label: n.label, desc: n.desc })),
-    cats:  Object.fromEntries(Object.entries(categories).map(([k,v]) => [k, v.label]))
+    nodes: nodes.map(n => ({ id: n.id, label: n.label, desc: n.desc, thumb: n.thumb || null })),
+    cats:  Object.fromEntries(Object.entries(categories).map(([k,v]) => [k, v.label])),
+    edges: edges.map(e => ({ from: e.from, to: e.to, strength: e.strength }))
   };
   try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) { return; }
   hasUnsaved = false;
@@ -1675,11 +1849,16 @@ function loadFromStorage() {
       if (n) {
         if (s.label != null) n.label = s.label;
         if (s.desc  != null) n.desc  = s.desc;
+        if (s.thumb != null) n.thumb = s.thumb;
       }
     });
     if (data.cats) Object.entries(data.cats).forEach(([key, label]) => {
       if (categories[key] && label != null) categories[key].label = label;
     });
+    if (data.edges) {
+      edges.length = 0;
+      data.edges.forEach(e => edges.push(e));
+    }
   } catch(e) { /* localStorage unavailable or data corrupt — ignore */ }
 }
 
@@ -1690,7 +1869,7 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
-  logoVersion:       'v2.5',
+  logoVersion:       'v2.6',
   logoSub:           'work in progress',
 };
 
@@ -1846,6 +2025,155 @@ document.getElementById('editSearchPlaceholder').addEventListener('input', e => 
 
 document.getElementById('adminSaveBtn').addEventListener('click', saveToStorage);
 
+// ── Connect / Disconnect nodes ──
+function _adminMsg(text) {
+  const u = document.getElementById('adminUnsaved');
+  u.textContent = text;
+  u.style.display = 'block';
+  setTimeout(() => {
+    u.textContent = '● שינויים לא נשמרו';
+    if (!hasUnsaved) u.style.display = 'none';
+  }, 2600);
+}
+
+document.getElementById('adminConnectBtn').addEventListener('click', () => {
+  const sel = [...checkedNodes];
+  if (sel.length !== 2) { _adminMsg('⚠ סמן בדיוק 2 צמתים'); return; }
+  const [a, b] = sel;
+  if (edges.some(e => (e.from===a&&e.to===b)||(e.from===b&&e.to===a))) {
+    _adminMsg('⚠ קשר כבר קיים'); return;
+  }
+  edges.push({ from: a, to: b, strength: 0.5 });
+  document.getElementById('edgeCount').textContent = edges.length;
+  markUnsaved();
+  _adminMsg('✓ קשר נוסף — שמור כדי לשמר');
+});
+
+document.getElementById('adminDisconnectBtn').addEventListener('click', () => {
+  const sel = [...checkedNodes];
+  if (sel.length !== 2) { _adminMsg('⚠ סמן בדיוק 2 צמתים'); return; }
+  const [a, b] = sel;
+  const idx = edges.findIndex(e => (e.from===a&&e.to===b)||(e.from===b&&e.to===a));
+  if (idx === -1) { _adminMsg('⚠ לא נמצא קשר בין הצמתים'); return; }
+  edges.splice(idx, 1);
+  document.getElementById('edgeCount').textContent = edges.length;
+  markUnsaved();
+  _adminMsg('✓ קשר הוסר — שמור כדי לשמר');
+});
+
+// ── Crop tool ──
+let _pendingThumbNid = null;
+let _cropNatW = 0, _cropNatH = 0;
+let _cropRendW = 0, _cropRendH = 0;
+let _cropOffX = 0, _cropOffY = 0;
+let _cropBox  = { x: 0, y: 0, size: 100 };
+let _cropDrag = null, _cropDragStart = null;
+
+document.getElementById('thumbFileInput').addEventListener('change', function () {
+  if (!this.files || !this.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.getElementById('cropSourceImg');
+    img.onload = () => {
+      const vp  = document.getElementById('cropViewport');
+      const vpW = vp.offsetWidth, vpH = 280;
+      _cropNatW  = img.naturalWidth;  _cropNatH  = img.naturalHeight;
+      const sc   = Math.min(vpW / _cropNatW, vpH / _cropNatH);
+      _cropRendW = _cropNatW * sc;    _cropRendH = _cropNatH * sc;
+      _cropOffX  = (vpW - _cropRendW) / 2;
+      _cropOffY  = (vpH - _cropRendH) / 2;
+      img.style.cssText = `width:${_cropRendW}px;height:${_cropRendH}px;left:${_cropOffX}px;top:${_cropOffY}px`;
+      const s = Math.min(_cropRendW, _cropRendH) * 0.65;
+      _cropBox = { x: _cropOffX + (_cropRendW - s)/2, y: _cropOffY + (_cropRendH - s)/2, size: s };
+      _cropBoxSync();
+    };
+    img.src = ev.target.result;
+    document.getElementById('cropOverlay').style.display = 'flex';
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+
+function _cropBoxSync() {
+  const b = document.getElementById('cropBox');
+  b.style.left = _cropBox.x + 'px'; b.style.top  = _cropBox.y + 'px';
+  b.style.width = _cropBox.size + 'px'; b.style.height = _cropBox.size + 'px';
+}
+
+function _cropClamp() {
+  _cropBox.size = Math.max(30, Math.min(Math.min(_cropRendW, _cropRendH), _cropBox.size));
+  _cropBox.x = Math.max(_cropOffX, Math.min(_cropOffX + _cropRendW - _cropBox.size, _cropBox.x));
+  _cropBox.y = Math.max(_cropOffY, Math.min(_cropOffY + _cropRendH - _cropBox.size, _cropBox.y));
+}
+
+const _vpEl = document.getElementById('cropViewport');
+_vpEl.addEventListener('mousedown', e => {
+  const r  = _vpEl.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const corners = [
+    { id:'tl', cx: _cropBox.x,               cy: _cropBox.y },
+    { id:'tr', cx: _cropBox.x + _cropBox.size, cy: _cropBox.y },
+    { id:'bl', cx: _cropBox.x,               cy: _cropBox.y + _cropBox.size },
+    { id:'br', cx: _cropBox.x + _cropBox.size, cy: _cropBox.y + _cropBox.size },
+  ];
+  for (const c of corners) {
+    if (Math.abs(mx - c.cx) < 16 && Math.abs(my - c.cy) < 16) {
+      _cropDrag = c.id;
+      _cropDragStart = { mx, my, ...JSON.parse(JSON.stringify(_cropBox)) };
+      e.preventDefault(); return;
+    }
+  }
+  if (mx > _cropBox.x && mx < _cropBox.x + _cropBox.size &&
+      my > _cropBox.y && my < _cropBox.y + _cropBox.size) {
+    _cropDrag = 'move';
+    _cropDragStart = { mx, my, ...JSON.parse(JSON.stringify(_cropBox)) };
+    e.preventDefault();
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (!_cropDrag) return;
+  const r  = _vpEl.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const dx = mx - _cropDragStart.mx, dy = my - _cropDragStart.my;
+  const { x: ox, y: oy, size: os } = _cropDragStart;
+  if (_cropDrag === 'move') {
+    _cropBox.x = ox + dx; _cropBox.y = oy + dy;
+  } else {
+    const d = (Math.abs(dx) >= Math.abs(dy) ? dx : dy);
+    if (_cropDrag === 'br') { _cropBox.size = os + d; }
+    else if (_cropDrag === 'bl') { const ns = os - d; _cropBox.x = ox + os - ns; _cropBox.size = ns; }
+    else if (_cropDrag === 'tr') { const ns = os + d; _cropBox.y = oy + os - ns; _cropBox.size = ns; }
+    else if (_cropDrag === 'tl') { const ns = os - d; _cropBox.x = ox+os-ns; _cropBox.y = oy+os-ns; _cropBox.size = ns; }
+  }
+  _cropClamp(); _cropBoxSync();
+});
+
+window.addEventListener('mouseup', () => { _cropDrag = null; _cropDragStart = null; });
+
+document.getElementById('cropConfirmBtn').addEventListener('click', () => {
+  const img  = document.getElementById('cropSourceImg');
+  const scX  = _cropNatW / _cropRendW, scY = _cropNatH / _cropRendH;
+  const srcX = (_cropBox.x - _cropOffX) * scX;
+  const srcY = (_cropBox.y - _cropOffY) * scY;
+  const srcS = _cropBox.size * scX;
+  const cv   = document.createElement('canvas');
+  cv.width   = cv.height = 180;
+  cv.getContext('2d').drawImage(img, srcX, srcY, srcS, srcS, 0, 0, 180, 180);
+  const dataUrl = cv.toDataURL('image/jpeg', 0.85);
+  if (_pendingThumbNid && nodeMap[_pendingThumbNid]) {
+    nodeMap[_pendingThumbNid].thumb = dataUrl;
+    markUnsaved();
+    populateNodeTab(document.getElementById('adminNodeSearch').value);
+  }
+  document.getElementById('cropOverlay').style.display = 'none';
+  _pendingThumbNid = null;
+});
+
+document.getElementById('cropCancelBtn').addEventListener('click', () => {
+  document.getElementById('cropOverlay').style.display = 'none';
+  _pendingThumbNid = null;
+});
+
 // ── Tab 2: Nodes ──
 function populateNodeTab(filter) {
   filter = (filter || '').trim().toLowerCase();
@@ -1858,12 +2186,17 @@ function populateNodeTab(filter) {
     const cat      = categories[n.cat];
     const labelVal = escHtml(n.label);
     const descVal  = escHtml(n.desc || '');
+    const thumbHtml = n.thumb
+      ? `<img class="node-thumb-preview" src="${n.thumb}" alt="thumb" />`
+      : '';
     return `
       <div class="admin-node-item">
         <div class="admin-node-item-header">
+          <input type="checkbox" class="node-checkbox" data-nid="${n.id}" ${checkedNodes.has(n.id) ? 'checked' : ''} />
           <span class="admin-node-cat-dot" style="background:${cat.color}"></span>
           <span class="admin-node-cat-label">${cat.label}</span>
         </div>
+        ${thumbHtml}
         <input
           type="text"
           class="admin-input admin-node-label-input"
@@ -1872,7 +2205,10 @@ function populateNodeTab(filter) {
           value="${labelVal}"
           placeholder="שם הצומת"
         />
-        <button class="admin-desc-toggle" data-nid="${n.id}">+ ערוך תיאור</button>
+        <div class="admin-node-btn-row">
+          <button class="admin-desc-toggle" data-nid="${n.id}">+ ערוך תיאור</button>
+          <button class="admin-img-btn" data-nid="${n.id}">🖼 הוסף תמונה</button>
+        </div>
         <div class="admin-desc-area" id="descArea_${n.id}">
           <textarea
             class="admin-textarea"
@@ -1910,6 +2246,24 @@ function populateNodeTab(filter) {
       const area = document.getElementById('descArea_' + btn.dataset.nid);
       const open = area.classList.toggle('open');
       btn.textContent = open ? '− סגור תיאור' : '+ ערוך תיאור';
+    });
+  });
+
+  // bind checkboxes
+  container.querySelectorAll('.node-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) checkedNodes.add(cb.dataset.nid);
+      else checkedNodes.delete(cb.dataset.nid);
+    });
+  });
+
+  // bind add-image buttons
+  container.querySelectorAll('.admin-img-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _pendingThumbNid = btn.dataset.nid;
+      const fi = document.getElementById('thumbFileInput');
+      fi.value = '';
+      fi.click();
     });
   });
 }
