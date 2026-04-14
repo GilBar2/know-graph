@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Graph — User Tutorial v2.7</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #1e1e2e;
+    --text: #e0e0e8;
+    --text-dim: #6e6e80;
+    --accent-blue: #4d8bff;
+    --accent-green: #3dd68c;
+    --accent-orange: #ff9f43;
+    --accent-purple: #a855f7;
+    --accent-cyan: #22d3ee;
+    --accent-red: #ff4d6a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: linear-gradient(135deg, #0d0d18 0%, #12121a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 24px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(77,139,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: rgba(77,139,255,0.15);
+    border: 1px solid rgba(77,139,255,0.3);
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .site-header h1 {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .site-header h1 span {
+    color: var(--accent-blue);
+  }
+
+  .site-header p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 520px;
+    margin: 0 auto 28px;
+  }
+
+  .header-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-blue);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .header-link:hover { opacity: 0.85; }
+
+  /* ── Layout ── */
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 48px 0 56px;
+  }
+
+  .toc-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 32px;
+    counter-reset: toc;
+  }
+
+  @media (max-width: 560px) {
+    .toc ol { grid-template-columns: 1fr; }
+  }
+
+  .toc li {
+    counter-increment: toc;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .toc li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    opacity: 0.7;
+    flex-shrink: 0;
+    width: 22px;
+  }
+
+  .toc a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+  }
+
+  .toc a:hover { color: var(--accent-blue); }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 72px;
+    scroll-margin-top: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(77,139,255,0.12);
+    border: 1px solid rgba(77,139,255,0.25);
+    color: var(--accent-blue);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .section p {
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── Steps ── */
+  .steps {
+    list-style: none;
+    counter-reset: steps;
+    margin: 16px 0;
+  }
+
+  .steps li {
+    counter-increment: steps;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .steps li::before {
+    content: counter(steps);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(77,139,255,0.15);
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .steps li span { color: var(--text-dim); }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(30,30,46,0.6);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+
+  td:first-child {
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  table, th, td {
+    border-radius: 0;
+  }
+
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  /* ── Screenshot placeholder ── */
+  .screenshot {
+    background: var(--surface);
+    border: 1px dashed rgba(77,139,255,0.25);
+    border-radius: 10px;
+    padding: 32px 20px;
+    margin: 20px 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .screenshot-icon {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+
+  /* ── Callout / Note ── */
+  .note {
+    background: rgba(77,139,255,0.07);
+    border-left: 3px solid var(--accent-blue);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .note strong { color: var(--accent-blue); }
+
+  .warn {
+    background: rgba(255,159,67,0.07);
+    border-left: 3px solid var(--accent-orange);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .warn strong { color: var(--accent-orange); }
+
+  /* ── Pill labels ── */
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .pill-blue   { background: rgba(77,139,255,0.15);  color: var(--accent-blue);   }
+  .pill-orange { background: rgba(255,159,67,0.15);  color: var(--accent-orange); }
+  .pill-purple { background: rgba(168,85,247,0.15);  color: var(--accent-purple); }
+  .pill-green  { background: rgba(61,214,140,0.15);  color: var(--accent-green);  }
+
+  /* ── Code / keyboard ── */
+  kbd {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text);
+  }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 64px 0;
+  }
+
+  /* ── Footer ── */
+  .site-footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .site-footer a {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <div class="header-badge">User Tutorial · v2.7</div>
+  <h1>Knowledge Graph<br><span>ניהול ארכיון</span></h1>
+  <p>A complete guide to navigating the archive, exploring connections, and editing content in the admin panel.</p>
+  <a class="header-link" href="https://gilbar2.github.io/know-graph/" target="_blank">
+    ↗ Open the App
+  </a>
+</header>
+
+<main class="page">
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">Opening the App</a></li>
+      <li><a href="#s2">The Graph Canvas</a></li>
+      <li><a href="#s3">Searching for Nodes</a></li>
+      <li><a href="#s4">Node Info Panel</a></li>
+      <li><a href="#s5">Category Legend</a></li>
+      <li><a href="#s6">Admin Panel — Logging In</a></li>
+      <li><a href="#s7">Editing Node Labels & Descriptions</a></li>
+      <li><a href="#s8">Editing Category Names</a></li>
+      <li><a href="#s9">Editing Site Titles & Labels</a></li>
+      <li><a href="#s10">Adding a Thumbnail (Crop Tool)</a></li>
+      <li><a href="#s11">Auto Thumbnail Generation</a></li>
+      <li><a href="#s12">Connecting Nodes</a></li>
+      <li><a href="#s13">Disconnecting Nodes</a></li>
+      <li><a href="#s14">Saving Changes</a></li>
+      <li><a href="#s15">Mobile Usage</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Opening the App</h2>
+    </div>
+    <p>Open any browser and go to:</p>
+    <div class="note"><strong>https://gilbar2.github.io/know-graph/</strong></div>
+    <p>The knowledge graph loads immediately — no password or login is needed for the public view.</p>
+    <div class="screenshot">
+      <span class="screenshot-icon">🖥</span>
+      Screenshot: Full app on first load — dark canvas, glowing nodes, header with logo and search
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>The Graph Canvas</h2>
+    </div>
+    <p>The main view is a live, physics-driven graph. Each circle is a <strong>node</strong> (an entity in the archive). Lines between nodes are <strong>edges</strong> (relationships).</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Action</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Click a node</td><td>Opens the info panel for that node</td></tr>
+          <tr><td>Drag a node</td><td>Repositions it; surrounding nodes adjust via physics</td></tr>
+          <tr><td>Drag the background</td><td>Pans the entire canvas</td></tr>
+          <tr><td>Scroll wheel / pinch</td><td>Zooms in or out</td></tr>
+          <tr><td>Click empty space</td><td>Closes the open info panel</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Node <strong>size</strong> reflects relative importance. Node <strong>color</strong> reflects its category. A thumbnail image appears inside the circle if one has been assigned.</p>
+    <div class="screenshot">
+      <span class="screenshot-icon">🔵</span>
+      Screenshot: Graph canvas with several nodes; one hovered, glowing, with neighbors highlighted
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Searching for Nodes</h2>
+    </div>
+    <p>The search bar is at the top-right of the screen. Type any part of a node's Hebrew name to filter the graph in real time.</p>
+    <ol class="steps">
+      <li><span>Click the search bar (or start typing)</span></li>
+      <li><span>Matching nodes <strong>brighten</strong>; non-matching nodes fade</span></li>
+      <li><span>Clear the search field to restore all nodes</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">🔍</span>
+      Screenshot: Search bar with Hebrew text entered — matching nodes highlighted, others dimmed
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Node Info Panel</h2>
+    </div>
+    <p>Click any node to open its info panel on the right side of the screen. The panel contains:</p>
+    <ol class="steps">
+      <li><span><strong>Node title</strong> — large heading at the top</span></li>
+      <li><span><strong>Category badge</strong> — color-coded pill showing the category</span></li>
+      <li><span><strong>Thumbnail image</strong> — if assigned, shown above the description</span></li>
+      <li><span><strong>Description</strong> — freeform Hebrew text about the node</span></li>
+      <li><span><strong>Google Drive carousel</strong> — embedded file browser for the node's linked Drive folder (documents, images, videos)</span></li>
+      <li><span><strong>Connected nodes</strong> — clickable list of directly linked nodes</span></li>
+    </ol>
+    <p>Click anywhere on the empty canvas to close the panel.</p>
+    <div class="screenshot">
+      <span class="screenshot-icon">📋</span>
+      Screenshot: Info panel open — thumbnail, description text, and Drive carousel visible
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">📁</span>
+      Screenshot: Drive carousel grid view showing folder contents inside the panel
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>Category Legend</h2>
+    </div>
+    <p>The legend lives in the <strong>bottom-left corner</strong>. It lists the 8 categories, each with its color and icon.</p>
+    <ol class="steps">
+      <li><span><strong>Click a category</strong> to filter — only nodes in that category stay fully visible</span></li>
+      <li><span><strong>Click again</strong> (or click another category) to clear the filter</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">🏷</span>
+      Screenshot: Legend panel, bottom-left — one category selected, others dimmed on the canvas
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Admin Panel — Logging In</h2>
+    </div>
+    <p>The admin panel lets authorized users edit node content, manage connections, and add images.</p>
+    <ol class="steps">
+      <li><span>Click the <strong>⚙</strong> gear icon in the top-right corner of the header</span></li>
+      <li><span>Enter the admin password in the prompt that appears</span></li>
+      <li><span>The admin panel slides in from the right</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">⚙️</span>
+      Screenshot: Gear icon in header (top-right area), zoomed in
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">🔐</span>
+      Screenshot: Password prompt dialog centered on screen
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">🗂</span>
+      Screenshot: Admin panel open — node list with checkboxes and edit buttons
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Editing Node Labels & Descriptions</h2>
+    </div>
+    <p>Every node appears as a row in the admin panel's node list. To edit one:</p>
+    <ol class="steps">
+      <li><span>Scroll to the node (or use the list)</span></li>
+      <li><span>Click <strong>+ ערוך תיאור</strong> to expand the editing area</span></li>
+      <li><span>Update the <strong>label</strong> (name) field</span></li>
+      <li><span>Update the <strong>description</strong> text area</span></li>
+      <li><span>Click <strong>שמור שינויים</strong> to save</span></li>
+    </ol>
+    <div class="note">
+      <strong>Tip:</strong> Each node row also has a checkbox — use it to select nodes for connect/disconnect operations (see sections 12–13).
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">✏️</span>
+      Screenshot: A node row expanded showing label field and description textarea
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>Editing Category Names</h2>
+    </div>
+    <p>Switch to the <strong>קטגוריות</strong> tab inside the admin panel.</p>
+    <ol class="steps">
+      <li><span>Each category shows its icon and a text field for the display name</span></li>
+      <li><span>Edit the name — the legend and all node badges update live</span></li>
+      <li><span>Save when done</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">🎨</span>
+      Screenshot: Categories tab — each row shows an emoji icon and editable name field
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2>Editing Site Titles & Labels</h2>
+    </div>
+    <p>Switch to the <strong>טקסטים</strong> tab inside the admin panel.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Where it appears</th></tr></thead>
+        <tbody>
+          <tr><td>Site title</td><td>Browser tab and the logo text in the header</td></tr>
+          <tr><td>Node count label</td><td>Next to the node counter in the header stats</td></tr>
+          <tr><td>Edge count label</td><td>Next to the edge counter in the header stats</td></tr>
+          <tr><td>Search placeholder</td><td>Hint text inside the search bar</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>All changes preview immediately on the page behind the admin panel.</p>
+    <div class="screenshot">
+      <span class="screenshot-icon">📝</span>
+      Screenshot: Texts tab showing editable fields for title, labels, and search placeholder
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Adding a Thumbnail Image (Crop Tool)</h2>
+    </div>
+    <p>Each node can have a custom thumbnail — it appears inside the node circle and at the top of the info panel.</p>
+    <ol class="steps">
+      <li><span>In the admin node list, click <strong>+ הוסף תמונה</strong> on the node you want</span></li>
+      <li><span>Choose an image file from your device</span></li>
+      <li><span>The <strong>crop tool</strong> opens showing your image with a square selection box</span></li>
+    </ol>
+
+    <p><strong>Using the crop tool:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Action</th><th>How</th></tr></thead>
+        <tbody>
+          <tr><td>Move the crop box</td><td>Click and drag <em>inside</em> the box</td></tr>
+          <tr><td>Resize the crop box</td><td>Drag any of the 4 corner handles</td></tr>
+          <tr><td>Aspect ratio</td><td>Always locked to 1:1 (square)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ol class="steps">
+      <li><span>Position and resize the box to frame the part you want</span></li>
+      <li><span>Click <strong>✓ אשר חיתוך</strong> to save (output: 180×180 px JPEG)</span></li>
+    </ol>
+
+    <div class="screenshot">
+      <span class="screenshot-icon">✂️</span>
+      Screenshot: Crop tool open — image displayed with square selection box and 4 corner handles
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">🖼</span>
+      Screenshot: Node on the graph with custom thumbnail visible inside the circle
+    </div>
+    <div class="note">
+      <strong>To replace a thumbnail:</strong> click <strong>+ הוסף תמונה</strong> again and repeat the process.
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>Auto Thumbnail Generation</h2>
+    </div>
+    <p>The <span class="pill pill-purple">🖼 auto thumbnail</span> button (purple, in the admin footer) instantly generates a designed thumbnail for every node that doesn't already have one — no image upload required.</p>
+    <ol class="steps">
+      <li><span>Scroll to the bottom of the admin panel</span></li>
+      <li><span>Click the purple <strong>🖼 auto thumbnail</strong> button</span></li>
+      <li><span>Thumbnails are generated for all nodes without one, using:</span></li>
+    </ol>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Element</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Background gradient</td><td>Category color</td></tr>
+          <tr><td>Central icon</td><td>Category emoji</td></tr>
+          <tr><td>Text label</td><td>Node's Hebrew name</td></tr>
+          <tr><td>Color bar at bottom</td><td>Category name + color</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <strong>Note:</strong> Auto thumbnail skips nodes that already have a manually uploaded image.
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">🎛</span>
+      Screenshot: Admin footer showing the blue "Connect", orange "Disconnect", and purple "Auto thumbnail" buttons
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">✨</span>
+      Screenshot: Graph after auto thumbnail — nodes showing generated thumbnails with icons and labels
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2>Connecting Nodes</h2>
+    </div>
+    <p>To add a new edge (connection line) between two nodes:</p>
+    <ol class="steps">
+      <li><span>In the admin node list, check the <strong>checkbox</strong> next to the first node</span></li>
+      <li><span>Check the <strong>checkbox</strong> next to the second node</span></li>
+      <li><span>Click the <span class="pill pill-blue">🔗 חיבור צמתים</span> button in the admin footer</span></li>
+      <li><span>A new edge appears on the graph between the two nodes</span></li>
+      <li><span>Checkboxes are cleared automatically</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">☑️</span>
+      Screenshot: Two checkboxes checked in the admin node list
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">🔗</span>
+      Screenshot: New connection line visible between the two nodes on the graph
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="section" id="s13">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <h2>Disconnecting Nodes</h2>
+    </div>
+    <p>To remove an existing edge between two nodes:</p>
+    <ol class="steps">
+      <li><span>Check the <strong>checkbox</strong> next to both nodes</span></li>
+      <li><span>Click the <span class="pill pill-orange">✂️ ניתוק צמתים</span> button in the admin footer</span></li>
+      <li><span>If an edge exists between them, it is removed from the graph</span></li>
+    </ol>
+    <div class="warn">
+      <strong>Note:</strong> If no edge exists between the two selected nodes, nothing happens.
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">✂️</span>
+      Screenshot: Orange "Disconnect" button in the admin footer
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="section" id="s14">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <h2>Saving Changes</h2>
+    </div>
+    <p>Admin changes (labels, descriptions, thumbnails, edges) are saved to the browser's <strong>localStorage</strong> and persist across page reloads in the same browser.</p>
+    <ol class="steps">
+      <li><span>Click the green <span class="pill pill-green">שמור שינויים</span> button at the bottom of the admin panel</span></li>
+      <li><span>The button shows <strong>✓ נשמר!</strong> briefly to confirm</span></li>
+    </ol>
+    <div class="screenshot">
+      <span class="screenshot-icon">💾</span>
+      Screenshot: Green "Save changes" button at bottom of admin panel
+    </div>
+    <div class="warn">
+      <strong>Important:</strong> Changes are saved <em>locally in your browser only</em>. Opening the app in a different browser or device will show the default data. To publish changes for all users, the source file must be updated and redeployed.
+    </div>
+  </section>
+
+  <!-- 15 -->
+  <section class="section" id="s15">
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <h2>Mobile Usage</h2>
+    </div>
+    <p>The app is fully responsive and works on phones and tablets.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>Mobile behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Info panel</td><td>Fills the full screen width</td></tr>
+          <tr><td>Admin panel</td><td>Fills the full screen width</td></tr>
+          <tr><td>Search bar</td><td>Narrower to fit the smaller header</td></tr>
+          <tr><td>Stats counter</td><td>Hidden on small screens</td></tr>
+          <tr><td>Legend</td><td>Repositions to the bottom</td></tr>
+          <tr><td>Zoom</td><td>Pinch-to-zoom on the canvas</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All admin features (editing, thumbnails, connect/disconnect) work the same on mobile.</p>
+    <div class="screenshot">
+      <span class="screenshot-icon">📱</span>
+      Screenshot: App on iPhone (portrait) — graph visible with header
+    </div>
+    <div class="screenshot">
+      <span class="screenshot-icon">📱</span>
+      Screenshot: Info panel open on mobile, full-width, with thumbnail and description
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Knowledge Graph · v2.7 · Tutorial last updated April 2026</p>
+  <p style="margin-top: 8px;"><a href="https://gilbar2.github.io/know-graph/" target="_blank">↗ Open the App</a></p>
+</footer>
+
+</body>
+</html>
