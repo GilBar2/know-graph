@@ -1125,6 +1125,72 @@
     transition: color 0.2s;
   }
   .crop-cancel-btn:hover { color: var(--text); }
+
+  /* ── Fork badge (shown in header when a fork URL is active) ── */
+  .fork-badge {
+    display: none; align-items: center; gap: 7px;
+    background: rgba(168,85,247,0.13);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 20px; padding: 4px 10px 4px 8px;
+    font-size: 12px; font-weight: 500; color: var(--accent-purple);
+  }
+  .fork-badge.show { display: flex; }
+  .fork-badge-icon { font-size: 13px; }
+  .fork-badge-exit {
+    color: var(--text-dim); text-decoration: none; font-size: 11px;
+    padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.06);
+    transition: background 0.2s;
+  }
+  .fork-badge-exit:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+  /* ── Admin forks tab ── */
+  .fork-list { display: flex; flex-direction: column; gap: 8px; }
+  .fork-empty { color: var(--text-dim); font-size: 13px; text-align: center; padding: 20px 0; }
+  .fork-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .fork-item-header { display: flex; align-items: center; justify-content: space-between; }
+  .fork-item-name { font-weight: 600; font-size: 14px; }
+  .fork-item-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .fork-url-row {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 8px; font-size: 11px; color: var(--text-dim);
+  }
+  .fork-url-text {
+    flex: 1; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; direction: ltr; text-align: left;
+  }
+  .fork-copy-btn {
+    background: rgba(77,139,255,0.14); color: var(--accent-blue);
+    border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; flex-shrink: 0;
+  }
+  .fork-copy-btn:hover { background: rgba(77,139,255,0.26); }
+  .fork-delete-btn {
+    background: rgba(255,77,106,0.1); color: var(--accent-red);
+    border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+  }
+  .fork-delete-btn:hover { background: rgba(255,77,106,0.22); }
+  .fork-create-section {
+    margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .fork-create-hint { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+  .fork-checked-count { font-size: 12px; color: var(--accent-purple); font-weight: 500; }
+  .fork-create-row { display: flex; gap: 8px; }
+  .fork-create-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; color: var(--text);
+    font-size: 13px; font-family: 'Rubik', sans-serif;
+  }
+  .fork-create-input:focus { outline: none; border-color: var(--accent-purple); }
+  .fork-create-btn {
+    background: var(--accent-purple); color: #fff; border: none;
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; font-family: 'Rubik', sans-serif;
+  }
+  .fork-create-btn:hover { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -1142,6 +1208,11 @@
     </div>
   </div>
   <div class="header-right">
+    <div class="fork-badge" id="forkBadge">
+      <span class="fork-badge-icon">⎇</span>
+      <span id="forkBadgeName"></span>
+      <a href="?" class="fork-badge-exit" title="חזור לגרף המלא">× כל הגרף</a>
+    </div>
     <div class="admin-mode-indicator" id="adminModeIndicator">
       <div class="admin-mode-dot"></div>
       מצב מנהל
@@ -1215,6 +1286,7 @@
     <button class="admin-tab active" data-tab="siteTab">כותרות האתר</button>
     <button class="admin-tab" data-tab="nodesTab">צמתים</button>
     <button class="admin-tab" data-tab="catsTab">קטגוריות</button>
+    <button class="admin-tab" data-tab="forksTab">⎇ פורקים</button>
   </div>
 
   <!-- Tab: Site text -->
@@ -1262,6 +1334,22 @@
   <div class="admin-tab-content" id="nodesTab">
     <input type="text" class="admin-node-search" id="adminNodeSearch" placeholder="סנן צמתים..." />
     <div id="nodeEditList"></div>
+  </div>
+
+  <!-- Tab: Forks -->
+  <div class="admin-tab-content" id="forksTab">
+    <div class="admin-section">
+      <div class="admin-section-title">פורקים שמורים</div>
+      <div class="fork-list" id="forkList"></div>
+      <div class="fork-create-section">
+        <div class="fork-create-hint">סמן צמתים בטאב "צמתים" ואז צור פורק חדש. הפורק ישמר כ-URL ייחודי לשיתוף.</div>
+        <div class="fork-checked-count" id="forkCheckedCount">0 צמתים נבחרו</div>
+        <div class="fork-create-row">
+          <input type="text" class="fork-create-input" id="forkNameInput" placeholder="שם הפורק..." />
+          <button class="fork-create-btn" id="forkCreateBtn">+ צור</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Tab: Categories -->
@@ -1824,6 +1912,8 @@ const DRIVE_API_KEY  = ''; // Set your Google Drive API key here
 const LS_KEY = 'kgraph_v22';
 let isAdmin    = false;
 let hasUnsaved = false;
+let forks      = {};   // { slug: { title, nodeIds: [] } }
+const _urlFork = new URLSearchParams(location.search).get('fork');
 const checkedNodes = new Set();
 
 function markUnsaved() {
@@ -1847,7 +1937,8 @@ function saveToStorage() {
     siteText: { ...siteText },
     nodes: nodes.map(n => ({ id: n.id, label: n.label, desc: n.desc, thumb: n.thumb || null })),
     cats:  Object.fromEntries(Object.entries(categories).map(([k,v]) => [k, v.label])),
-    edges: edges.map(e => ({ from: e.from, to: e.to, strength: e.strength }))
+    edges: edges.map(e => ({ from: e.from, to: e.to, strength: e.strength })),
+    forks: { ...forks }
   };
   try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) { return; }
   hasUnsaved = false;
@@ -1878,6 +1969,7 @@ function loadFromStorage() {
       edges.length = 0;
       data.edges.forEach(e => edges.push(e));
     }
+    if (data.forks) Object.assign(forks, data.forks);
   } catch(e) { /* localStorage unavailable or data corrupt — ignore */ }
 }
 
@@ -1888,7 +1980,7 @@ const siteText = {
   labelNodes:        'צמתים',
   labelEdges:        'קשרים',
   searchPlaceholder: 'חיפוש בגרף...',
-  logoVersion:       'v2.7',
+  logoVersion:       'v2.8',
   logoSub:           'work in progress',
 };
 
@@ -1910,6 +2002,33 @@ function applySearchPlaceholder(v) { document.getElementById('search').placehold
 // Load any saved admin changes and apply to DOM
 loadFromStorage();
 applySiteText();
+
+// ── Fork filter: apply ?fork= URL param ──
+function applyForkFilter() {
+  if (!_urlFork) return;
+  const fork = forks[_urlFork];
+  if (!fork) return;
+
+  // Show badge in header
+  document.getElementById('forkBadgeName').textContent = fork.title;
+  document.getElementById('forkBadge').classList.add('show');
+
+  // Filter nodes array in-place (keep only fork nodes)
+  const forkSet = new Set(fork.nodeIds);
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    if (!forkSet.has(nodes[i].id)) nodes.splice(i, 1);
+  }
+  // Filter edges (keep only edges where both ends are in fork)
+  for (let i = edges.length - 1; i >= 0; i--) {
+    if (!forkSet.has(edges[i].from) || !forkSet.has(edges[i].to)) edges.splice(i, 1);
+  }
+  // Update header counts
+  document.getElementById('nodeCount').textContent = nodes.length;
+  document.getElementById('edgeCount').textContent = edges.length;
+  // Hide admin trigger — forks are read-only views
+  document.getElementById('adminTrigger').style.display = 'none';
+}
+applyForkFilter();
 
 // -- Modal --
 function showAdminModal() {
@@ -1965,6 +2084,7 @@ function openAdminPanel() {
   populateSiteTab();
   populateNodeTab();
   populateCatTab();
+  populateForksTab();
   document.getElementById('adminPanel').classList.add('open');
 }
 
@@ -2343,6 +2463,9 @@ function populateNodeTab(filter) {
     cb.addEventListener('change', () => {
       if (cb.checked) checkedNodes.add(cb.dataset.nid);
       else checkedNodes.delete(cb.dataset.nid);
+      // keep forks tab count in sync
+      const countEl = document.getElementById('forkCheckedCount');
+      if (countEl) countEl.textContent = `${checkedNodes.size} צמתים נבחרו`;
     });
   });
 
@@ -2388,6 +2511,74 @@ function populateCatTab() {
     });
   });
 }
+
+// ── Tab 4: Forks ──
+function populateForksTab() {
+  const list    = document.getElementById('forkList');
+  const entries = Object.entries(forks);
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="fork-empty">אין פורקים עדיין</div>';
+  } else {
+    list.innerHTML = entries.map(([slug, fork]) => {
+      const url = `${location.origin}${location.pathname}?fork=${encodeURIComponent(slug)}`;
+      return `
+        <div class="fork-item">
+          <div class="fork-item-header">
+            <div>
+              <div class="fork-item-name">${escHtml(fork.title)}</div>
+              <div class="fork-item-meta">${fork.nodeIds.length} צמתים</div>
+            </div>
+            <button class="fork-delete-btn" data-slug="${escHtml(slug)}">מחק</button>
+          </div>
+          <div class="fork-url-row">
+            <span class="fork-url-text">${escHtml(url)}</span>
+            <button class="fork-copy-btn" data-url="${escHtml(url)}">העתק קישור</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('.fork-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = forks[btn.dataset.slug]?.title || btn.dataset.slug;
+        if (!confirm(`למחוק את הפורק "${name}"?`)) return;
+        delete forks[btn.dataset.slug];
+        markUnsaved();
+        populateForksTab();
+      });
+    });
+
+    list.querySelectorAll('.fork-copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.url).then(() => {
+          btn.textContent = '✓ הועתק!';
+          setTimeout(() => { btn.textContent = 'העתק קישור'; }, 2200);
+        });
+      });
+    });
+  }
+
+  const countEl = document.getElementById('forkCheckedCount');
+  if (countEl) countEl.textContent = `${checkedNodes.size} צמתים נבחרו`;
+}
+
+document.getElementById('forkCreateBtn').addEventListener('click', () => {
+  const title = document.getElementById('forkNameInput').value.trim();
+  if (!title) { _adminMsg('⚠ הזן שם לפורק'); return; }
+  if (checkedNodes.size === 0) { _adminMsg('⚠ סמן צמתים בטאב "צמתים" תחילה'); return; }
+
+  // Build a URL-safe slug from the Hebrew title
+  const slug = title
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u0590-\u05ff-]/g, '')
+    .replace(/-+/g, '-')
+    .slice(0, 50) || ('fork-' + Date.now());
+
+  forks[slug] = { title, nodeIds: [...checkedNodes] };
+  document.getElementById('forkNameInput').value = '';
+  markUnsaved();
+  populateForksTab();
+  _adminMsg(`✓ פורק "${title}" נוצר — שמור כדי לשמר`);
+});
 
 // ── Utility ──
 function escHtml(str) {
